@@ -14,6 +14,10 @@ config/name="Gudui"
 config/features=PackedStringArray("4.0", "Mobile")
 config/icon="res://icon.svg"
 
+[debug]
+
+gdscript/warnings/enable=false
+
 [rendering]
 
 renderer/rendering_method="mobile"
