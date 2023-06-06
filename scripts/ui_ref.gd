@@ -21,6 +21,19 @@ func prop(name: String, val) -> UIRef:
 	# Chain call
 	return self
 
+## Set multiple properties
+func props(props: Dictionary) -> UIRef:
+	# For each key -> value pair, call prop
+	for e in props.entry():
+		prop(e[0], e[1])
+	
+	# Chain call
+	return self
+
+## Get the node reference
+func ref() -> Node: 
+	return __node
+
 ## Build the child UI
 func children(add_children_callable: Callable) -> UIRef:
 	# Creates a new UI

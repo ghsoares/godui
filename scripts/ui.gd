@@ -1,6 +1,9 @@
 extends RefCounted
 class_name UI
 
+## The root UI
+var __root: UI
+
 ## The parent node
 var __parent: Node
 
