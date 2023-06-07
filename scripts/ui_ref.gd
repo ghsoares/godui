@@ -88,12 +88,15 @@ func sig(name: StringName, target: Callable) -> UIRef:
 	return self
 
 ## Return style reference
-func style() -> StyleRef:
+func style(modify_callable: Callable) -> UIRef:
 	# Create new style ref
 	if not __style:
 		__style = StyleRef.new(__node)
 
-	return __style
+	# Call callable
+	modify_callable.call(__style)
+
+	return self
 
 ## Build the child UI
 func show(update_child_ui_callable: Callable) -> UIRef:

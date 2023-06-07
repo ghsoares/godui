@@ -17,13 +17,21 @@ func _ready() -> void:
 func render_task(ui: UI, task: Dictionary) -> void:
 	# Add a panel container
 	ui.add(PanelContainer).show(func (ui):
-		# Modify the panel theme
-		ui.theme()
+		# Change panel
+		ui.style().flat("panel", func (style):
+			style.margin(8.0)
+		)
 
 		# Add a vbox
 		ui.add(VBoxContainer).show(func (ui):
-			# Add the task name label
-			ui.label(task.name)
+			# Add the task name line edit
+			ui.add(LineEdit).props({
+				"text": task.name,
+				"expand_to_text_length": true,
+			}).sig("text_changed", func (new_text: String):
+				task.name = new_text
+				ui.queue_update()
+			)
 
 			# Add a delete button
 			ui.button("Delete").sig("pressed", func ():
@@ -55,7 +63,7 @@ func _process(delta: float) -> void:
 	# Update the UI
 	ui.update(func (ui):
 		# Create a vertical section
-		ui.add(VBoxContainer).margin(0.0).show(func (ui):
+		ui.add(VBoxContainer).margin(8.0).show(func (ui):
 			# Add a label
 			ui.label("Tasks")
 

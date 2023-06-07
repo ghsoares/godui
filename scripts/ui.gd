@@ -16,8 +16,8 @@ var __children: Dictionary
 ## Current child index
 var __child_idx: int
 
-## Current theme reference
-var __theme: ThemeRef
+## Current style reference
+var __style: StyleRef
 
 ## Called to initialize
 func _init(parent: Node, root: UI = null) -> void:
@@ -75,13 +75,13 @@ func add(t: Object, key = null) -> UIRef:
 	# Return the cached reference
 	return ref
 
-## Called to modify the UI's theme
-func theme() -> ThemeRef:
-	# Create new theme ref
-	if not __theme:
-		__theme = ThemeRef.new(__parent)
+## Return style reference
+func style() -> StyleRef:
+	# Create new style ref
+	if not __style:
+		__style = StyleRef.new(__parent)
 
-	return __theme
+	return __style
 
 ## Call this function to update the interface. If it was queued to update, or 'force' parameter is true, it will call 'update_callable' parameter to update the UI
 func update(update_callable: Callable, force: bool = false) -> UI:
