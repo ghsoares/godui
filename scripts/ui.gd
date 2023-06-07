@@ -7,14 +7,29 @@ var __root: UI
 ## The parent node
 var __parent: Node
 
+## Needs to repaint?
+var __repaint: bool
+
 ## The cached children (type -> children)
 var __children: Dictionary
+
+## Current child index
+var __child_idx: int
+
+## Current theme reference
+var __theme: ThemeRef
+
+## Called to initialize
+func _init(parent: Node, root: UI = null) -> void:
+	__root = root if root else self
+	__parent = parent
+	__repaint = true
 
 ## Called to add a node to self
 func add(t: Object, key = null) -> UIRef:
 	# Key must be null or string
 	assert(key == null or key is String, "'key' must be null or a string")
-	assert(not key.begins_with("__gudui_id:"), "'key' can't start with reserved string '__gudui:'")
+	assert(key == null or not key.begins_with("__gudui_id:"), "'key' can't start with reserved string '__gudui:'")
 
 	# Get the cached references from type
 	var children = __children.get(t)
@@ -23,7 +38,7 @@ func add(t: Object, key = null) -> UIRef:
 		__children[t] = children
 	
 	# Get the key
-	var index: String = "__gudui_id:%i" % (children.idx + 1) if key == null else key
+	var index: String = "__gudui_id:%d" % (children.idx + 1) if key == null else key
 
 	# Get the cached reference
 	var ref: UIRef = children.nodes.get(index)
@@ -31,53 +46,116 @@ func add(t: Object, key = null) -> UIRef:
 	# Create the cached reference
 	if ref == null:
 		ref = UIRef.new()
-		ref.index = index
-		ref.node = t.new()
-		ref.node.name = "%s:%s" % [str(t), children.idx + 1]
+		ref.__index = index
+		ref.__ui = self
+		ref.__node = t.new()
+		ref.__node.name = "%s:%d" % [t, children.idx + 1]
 		children.nodes[index] = ref
 
 	# Add to tree
-	__parent.add_child(ref.node)
+	if not ref.__inside:
+		# Add as child of parent
+		__parent.add_child(ref.__node)
 
-	# Mark as inside tree
-	ref.__inside = true
+		# Mark as inside tree
+		ref.__inside = true
+
+	# Move child
+	__parent.move_child(ref.__node, __child_idx)
+
+	# Clear reference
+	ref.__clear()
 
 	# Increment the index
 	children.idx += 1
 
+	# Increment the child index
+	__child_idx += 1
+
 	# Return the cached reference
 	return ref
 
-## Called to clear self
-func clear() -> UI:
-	# For each children type
-	for t in __children:
-		# For each node
-		for n in t.nodes:
-			# Only remove it from parent if inside tree
-			if n.__inside:
-				__parent.remove_child(n.node)
-				n.__inside = false
-		# Reset index
-		t.idx = 0
+## Called to modify the UI's theme
+func theme() -> ThemeRef:
+	# Create new theme ref
+	if not __theme:
+		__theme = ThemeRef.new(__parent)
+
+	return __theme
+
+## Call this function to update the interface. If it was queued to update, or 'force' parameter is true, it will call 'update_callable' parameter to update the UI
+func update(update_callable: Callable, force: bool = false) -> UI:
+	# Can repaint
+	if __repaint or force:
+		var now: int = Time.get_ticks_usec()
+		__update(update_callable)
+		var elapsed: int = Time.get_ticks_usec() - now
+		print("Update time: %.2f ms" % (elapsed / 1000.0))
 
 	# Chain call
 	return self
 
-"""
-ui.add(PanelContainer).props({
-	"anchor_left": 0.0, "anchor_right": 0.0,
-	"anchor_top": 0.0, "anchor_bottom": 0.0
-}).children(func (ui):
-	ui.add(VBoxContainer).children(func (ui):
-		ui.add(Label).prop("text", "Current number: %s" % [self.selected_number + 1])
-		for i in range(0, 64):
-			let btn: UIRef = ui.add(Button, "btn %s" % i).prop("text", "Number %s" % [i + 1])
-			if i != self.selected_number:
-				label.set_theme_color("font_color", Color(1, 1, 1, 0.5))
-			else:
-				label.set_theme_color("font_color", Color(1, 1, 1))
-			btn.signal("pressed", func (): self.selected_number = i)
+## Queues update in root
+func queue_update() -> UI:
+	__root.__repaint = true
+
+	# Chain calls
+	return self
+
+## Internal UI update
+func __update(update_callable: Callable) -> void:
+	# Clears self
+	for t in __children.values():
+		# For each node
+		for n in t.nodes.values():
+			# Mark it to deletion (if inside tree)
+			if n.__inside: n.__deletion = true
+		
+		# Reset index
+		t.idx = 0
+	
+	# Reset child index
+	__child_idx = 0
+	
+	# Set repaint to false
+	__repaint = false
+
+	# Call update callable
+	update_callable.call(self)
+
+	# For each child type
+	for t in __children.values():
+		# For each node
+		for n in t.nodes.values():
+			# Update it
+			n.__post_update()
+
+			# Remove from parent if deleted
+			if n.__deletion:
+				n.__remove()
+				
+#region Common nodes functions
+
+## Adds a label with text 
+func label(text: String) -> UIRef:
+	# Add label with text property
+	return add(Label).prop("text", text)
+
+## Adds a button with text
+func button(text: String) -> UIRef:
+	return add(Button).prop("text", text)
+
+## Adds a horizontal scroll
+func horizontal_scroll(add_children_callable: Callable) -> UIRef:
+	return add(ScrollContainer).show(func (ui):
+		ui.add(HBoxContainer).expand_fill().show(add_children_callable)
 	)
-)
-"""
+
+## Adds a vertical scroll
+func vertical_scroll(add_children_callable: Callable) -> UIRef:
+	return add(ScrollContainer).show(func (ui):
+		ui.add(VBoxContainer).expand_fill().show(add_children_callable)
+	)
+
+#endregion
+
