@@ -28,6 +28,9 @@ var __children: UI
 ## Current style reference
 var __style: StyleRef
 
+## Current motion reference
+var __motion: MotionRef
+
 ## The unit regex
 var __unit_regex: RegEx
 
@@ -38,9 +41,10 @@ func _init() -> void:
 	__unit_regex.compile("^(\\d+(?:\\.\\d+)?) *(px|%)?$")
 
 ## Set a single property
-func prop(name: String, val) -> UIRef:
+func prop(name: StringName, val) -> UIRef:
 	# Set in the node
-	__node.set(name, val)
+	if __node.get(name) != val:
+		__node.set(name, val)
 
 	# Chain call
 	return self
@@ -59,42 +63,61 @@ func sig(name: StringName, target: Callable) -> UIRef:
 	# Get signal info
 	var sig_info = __signals.get(name)
 	if sig_info == null:
-		sig_info = {}
+		sig_info = {"target": null, "disconnect": true}
 		__signals[name] = sig_info
-	
-	# Get connection info
-	var con_info = sig_info.get(target.hash())
-	if con_info == null:
-		con_info = {"connected": false, "disconnect": false, "target": target}
-		sig_info[target.hash()] = con_info
-	
-	# Disconnect first
-	if con_info.connected and con_info.target.is_custom():
-		__node.disconnect(name, con_info.target)
-		con_info.connected = false
 
-	# Is not connected
-	if not con_info.connected:
+	# Must not have a connection yet
+	assert(sig_info.disconnect, "Already connected")
+
+	# Connect
+	if sig_info.target == null:
 		__node.connect(name, target)
 	
-		# Set current target
-		con_info.target = target
+		# Set target
+		sig_info.target = target
+	
+	# Reconnect
+	if sig_info.hash() != target.hash():
+		__node.disconnect(name, sig_info.target)
+		__node.connect(name, target)
 
-	# Set connection connected as true and disconnect as false
-	con_info.connected = true
-	con_info.disconnect = false
+		# Set target
+		sig_info.target = target
+
+	# Set disconnect to false
+	sig_info.disconnect = false
 
 	# Chain calls
 	return self
 
 ## Return style reference
-func style(modify_callable: Callable) -> UIRef:
+func style(style_callable: Callable) -> UIRef:
 	# Create new style ref
 	if not __style:
-		__style = StyleRef.new(__node)
+		__style = StyleRef.new(__node, true)
 
 	# Call callable
-	modify_callable.call(__style)
+	style_callable.call(__style)
+
+	return self
+
+## Return animation reference
+func motion(motion_callable: Callable) -> UIRef:
+	# Create new motion ref
+	if not __motion:
+		__motion = MotionRef.new(__node)
+
+	# Call callable
+	motion_callable.call(__motion)
+
+	return self
+
+## Set theme type variation
+func theme_variation(name: StringName) -> UIRef:
+	assert(__node is Control)
+
+	# Set type variation
+	__node.theme_type_variation = name
 
 	return self
 
@@ -119,28 +142,23 @@ func __clear() -> void:
 	__deletion = false
 	
 	# For each signal
-	for sig in __signals.keys():
-		# Get connections
-		var connections: Dictionary = __signals[sig]
-
-		# For each connection
-		for con in connections.values():
-			# Mark disconnect as true if connected
-			if con.connected: con.disconnect = true
+	for sig in __signals.values():
+		# Set disconnect to true
+		if sig.target != null:
+			sig.disconnect = true
 
 ## Update self
 func __post_update() -> void:
 	# For each signal
 	for sig in __signals.keys():
-		# Get connections
-		var connections: Dictionary = __signals[sig]
+		# Get signal info
+		var sig_info: Dictionary = __signals[sig]
 
-		# For each connection
-		for con in connections.values():
-			# Must disconnect
-			if con.disconnect and con.connected:
-				__node.disconnect(sig, con.target)
-				con.connected = false
+		# Must disconnect
+		if sig_info.disconnect:
+			__node.disconnect(sig, sig_info.target)
+			sig_info.target = null
+			sig_info.disconnect = false
 
 ## Remove self
 func __remove() -> void:
@@ -149,17 +167,15 @@ func __remove() -> void:
 	
 	# For each signal
 	for sig in __signals.keys():
-		# Get connections
-		var connections: Dictionary = __signals[sig]
+		# Get signal info
+		var sig_info: Dictionary = __signals[sig]
 
-		# For each connection
-		for con in connections.values():
-			# Is connected
-			if con.connected:
-				# Disconnect signal
-				__node.disconnect(sig, con.target)
-		# Clear connections
-		connections.clear()
+		# Has a target
+		if sig_info.target:
+			__node.disconnect(sig, sig_info.target)
+	
+	# Clear signals
+	__signals.clear()
 
 	# Mark inside as false
 	__inside = false
@@ -439,6 +455,23 @@ func margin(unit) -> UIRef:
 		__node.offset_right = -unit
 		__node.offset_bottom = -unit
 	
+	# Chain calls
+	return self
+
+## Positionate all the anchors to fill the parent rect
+func full_rect() -> UIRef:
+	assert(__node is Control)
+
+	# Set anchors and offset
+	__node.anchor_left = 0.0
+	__node.anchor_top = 0.0
+	__node.anchor_right = 1.0
+	__node.anchor_bottom = 1.0
+	__node.offset_left = 0.0
+	__node.offset_top = 0.0
+	__node.offset_right = 0.0
+	__node.offset_bottom = 0.0
+
 	# Chain calls
 	return self
 

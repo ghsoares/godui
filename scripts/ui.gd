@@ -21,6 +21,12 @@ var __style: StyleRef
 
 ## Called to initialize
 func _init(parent: Node, root: UI = null) -> void:
+	# Is root
+	if root == null:
+		assert(parent.has_method("ui_process"), "target node must have a 'ui_process' function")
+		# Connect frame process
+		parent.get_tree().process_frame.connect(__frame_update)
+
 	__root = root if root else self
 	__parent = parent
 	__repaint = true
@@ -49,7 +55,7 @@ func add(t: Object, key = null) -> UIRef:
 		ref.__index = index
 		ref.__ui = self
 		ref.__node = t.new()
-		ref.__node.name = "%s:%d" % [t, children.idx + 1]
+		ref.__node.name = "%s:%d" % [ref.__node.get_class(), children.idx + 1]
 		children.nodes[index] = ref
 
 	# Add to tree
@@ -76,21 +82,13 @@ func add(t: Object, key = null) -> UIRef:
 	return ref
 
 ## Return style reference
-func style() -> StyleRef:
+func style(style_callable: Callable) -> UI:
 	# Create new style ref
 	if not __style:
-		__style = StyleRef.new(__parent)
+		__style = StyleRef.new(__parent, false)
 
-	return __style
-
-## Call this function to update the interface. If it was queued to update, or 'force' parameter is true, it will call 'update_callable' parameter to update the UI
-func update(update_callable: Callable, force: bool = false) -> UI:
-	# Can repaint
-	if __repaint or force:
-		var now: int = Time.get_ticks_usec()
-		__update(update_callable)
-		var elapsed: int = Time.get_ticks_usec() - now
-		print("Update time: %.2f ms" % (elapsed / 1000.0))
+	# Call callable
+	style_callable.call(__style)
 
 	# Chain call
 	return self
@@ -101,6 +99,15 @@ func queue_update() -> UI:
 
 	# Chain calls
 	return self
+
+## Function is called by the scene tree to update the interface
+func __frame_update() -> void:
+	# Can repaint
+	if __repaint:
+		var now: int = Time.get_ticks_usec()
+		__update(__parent.ui_process)
+		var elapsed: int = Time.get_ticks_usec() - now
+		print("Update time: %.2f ms" % (elapsed / 1000.0))
 
 ## Internal UI update
 func __update(update_callable: Callable) -> void:
@@ -133,7 +140,7 @@ func __update(update_callable: Callable) -> void:
 			# Remove from parent if deleted
 			if n.__deletion:
 				n.__remove()
-				
+
 #region Common nodes functions
 
 ## Adds a label with text 

@@ -1,6 +1,29 @@
-[gd_scene load_steps=2 format=3 uid="uid://b2vxap3igaa6"]
+[gd_scene load_steps=5 format=3 uid="uid://b2vxap3igaa6"]
 
 [ext_resource type="Script" path="res://scripts/test.gd" id="1_82mw6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kbj6u"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.109804, 0.109804, 0.109804, 0.498039)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yvw34"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.109804, 0.109804, 0.109804, 0.498039)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="Theme" id="Theme_uu4b8"]
+BaseContainer/base_type = &"PanelContainer"
+BaseContainer/styles/panel = SubResource("StyleBoxFlat_kbj6u")
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_yvw34")
 
 [node name="Test" type="Control"]
 layout_mode = 3
@@ -9,4 +32,5 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = SubResource("Theme_uu4b8")
 script = ExtResource("1_82mw6")
