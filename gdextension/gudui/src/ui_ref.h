@@ -1,25 +1,33 @@
-#ifndef GUDUI_UI_H
-#define GUDUI_UI_H
+#ifndef GUDUI_UI_REF_H
+#define GUDUI_UI_REF_H
 
-#include "ui_ref.h"
-#include "style_ref.h"
+#include "ui.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/callable.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 namespace godot {
 
-class UI : public RefCounted {
+class UIRef : public RefCounted {
 	GDCLASS(UI, RefCounted);
 
-	Ref<UI> root;
-	Node *parent;
-	bool repaint;
-	HashMap<uint64_t, Ref<UIRef>> children;
-	uint64_t child_idx;
+	struct SignalInfo {
+		Callable target;
+		bool disconnect;
+	}
+
+	String index;
+	Ref<UI> ui;
+	Node *node;
+	HashMap<StringName, SignalInfo> signals;
+	bool deletion;
+	bool inside;
+	Ref<UI> children;
 	Ref<StyleRef> style;
+	
 
 protected:
 	static void _bind_methods();
@@ -39,4 +47,4 @@ public:
 
 }
 
-#endif // GUDUI_UI_H
+#endif // GUDUI_UI_REF_H
