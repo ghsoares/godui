@@ -108,6 +108,9 @@ func __frame_update() -> void:
 		__update(__parent.ui_process)
 		var elapsed: int = Time.get_ticks_usec() - now
 		print("Update time: %.2f ms" % (elapsed / 1000.0))
+	
+	# Idle update
+	__idle_update(__parent.get_process_delta_time())
 
 ## Internal UI update
 func __update(update_callable: Callable) -> void:
@@ -140,6 +143,13 @@ func __update(update_callable: Callable) -> void:
 			# Remove from parent if deleted
 			if n.__deletion:
 				n.__remove()
+
+## Internal UI idle update
+func __idle_update(delta: float) -> void:
+	# Update children
+	for t in __children.values():
+		for c in t.nodes.values():
+			c.__idle_update(delta)
 
 #region Common nodes functions
 

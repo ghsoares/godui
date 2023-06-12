@@ -146,6 +146,21 @@ func __clear() -> void:
 		# Set disconnect to true
 		if sig.target != null:
 			sig.disconnect = true
+	
+	# Clear motion
+	if __motion:
+		__motion.__clear()
+
+## Internal UI idle update
+func __idle_update(delta: float) -> void:
+	# Has an animation
+	if __motion:
+		__motion.__time += delta
+		__motion.__animate()
+
+	# Update children
+	if __children:
+		__children.__idle_update(delta)
 
 ## Update self
 func __post_update() -> void:
@@ -206,6 +221,15 @@ func expand_fill() -> UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_EXPAND_FILL)
 	axis_size_flags(1, Control.SIZE_EXPAND_FILL)
+
+	# Chain calls
+	return self
+
+## Shrink center in both axes
+func shrink_center() -> UIRef:
+	# Set flags
+	axis_size_flags(0, Control.SIZE_SHRINK_CENTER)
+	axis_size_flags(1, Control.SIZE_SHRINK_CENTER)
 
 	# Chain calls
 	return self

@@ -20,24 +20,42 @@ func render_task(ui: UI, task: Dictionary) -> void:
 		# Add a vbox
 		ui.add(HBoxContainer).show(func (ui):
 			# Add the completed mark
-			var btn: UIRef = ui.add(Button).theme_variation(
-				"ButtonCheck"
-			).prop(
-				"button_pressed", task.completed
-			).sig("toggled", func (pressed):
+			var btn: UIRef = ui.add(Button).theme_variation("ButtonCheck").props({
+				"button_pressed": task.completed,
+				"toggle_mode": true,
+				"action_mode": 0
+			}).sig("toggled", func (pressed):
 				# Set completed as pressed
 				task.completed = pressed
 
 				# Queue UI update
 				ui.queue_update()
-			).motion(func (motion):
-				motion.prop("modulate", func (motion):
-					motion.initial(Color.WHITE)
-					motion.linear(Color.RED, 0.25)
-					motion.linear(Color.GREEN, 0.25)
-					motion.linear(Color.BLUE, 0.25)
-					motion.loop(0.25)
-				)
+			)
+
+			# Add a color rect
+			ui.add(ColorRect).props({
+				"custom_minimum_size": Vector2(16.0, 16.0),
+				"pivot_offset": Vector2(8.0, 8.0)
+			}).shrink_center().motion(func (motion):
+				if task.completed:
+					motion.parallel(func (motion):
+						motion.prop("modulate", func (motion):
+							motion.ease_out(Color.GREEN, 0.25)
+						).repeat(3, func (motion, _idx): 
+							motion.prop("rotation", func (motion):
+								motion.ease_out(PI * 0.5, 0.25).wait(0.75)
+							)
+						)
+					)
+				else:
+					motion.parallel(func (motion):
+						motion.prop("modulate", func (motion):
+							motion.ease_out(Color.WHITE, 0.25)
+						).prop("rotation", func (motion):
+							motion.ease_out(0.0, 0.25)
+						)
+					)
+				motion.reset()
 			)
 
 			# Add the task name line edit
