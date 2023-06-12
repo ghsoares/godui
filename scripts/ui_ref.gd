@@ -102,7 +102,7 @@ func style(style_callable: Callable) -> UIRef:
 	return self
 
 ## Return animation reference
-func motion(motion_callable: Callable) -> MotionRef:
+func motion(motion_callable: Callable) -> UIRef:
 	# Create new motion ref
 	if not __motion:
 		__motion = MotionRef.new(__node)
@@ -110,7 +110,7 @@ func motion(motion_callable: Callable) -> MotionRef:
 	# Call callable
 	motion_callable.call(__motion)
 
-	return __motion
+	return self
 
 ## Set theme type variation
 func theme_variation(name: StringName) -> UIRef:

@@ -19,12 +19,13 @@ func render_task(ui: UI, task: Dictionary) -> void:
 	ui.add(PanelContainer).show(func (ui):
 		# Add a vbox
 		ui.add(HBoxContainer).show(func (ui):
-			# The color rect motion ref (must use a dictionary to pass references between callables)
-			var color_rect_motion: Dictionary = {"ref": null}
+			# The completed button motion ref (must use a dictionary to pass references between callables)
+			var completed_button_motion: Dictionary = {"ref": null}
 
 			# Add the completed mark
 			var btn: UIRef = ui.add(Button).shrink_center().theme_variation("ButtonCheck").props({
 				"custom_minimum_size": Vector2(16.0, 16.0),
+				"pivot_offset": Vector2(8.0, 8.0),
 				"button_pressed": task.completed,
 				"toggle_mode": true,
 				"action_mode": 0
@@ -32,58 +33,37 @@ func render_task(ui: UI, task: Dictionary) -> void:
 				# Set completed
 				task.completed = pressed
 
-				# Reset animation
-				if color_rect_motion.ref:
-					color_rect_motion.ref.reset()
+				# Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
+				if completed_button_motion.ref:
+					completed_button_motion.ref.reset()
 
 				# Queue UI update
 				ui.queue_update()
-			)
+			).motion(func (motion):
+				# Set motion reference
+				completed_button_motion.ref = motion
 
-			# Add a color rect
-			ui.add(ColorRect).props({
-				"custom_minimum_size": Vector2(16.0, 16.0),
-				"pivot_offset": Vector2(8.0, 8.0)
-			}).shrink_center().motion(func (motion):
-				# Set the motion reference
-				color_rect_motion.ref = motion
-				
-				# Run one animation when completed
+				# Play animation on completed
 				if task.completed:
-					motion.parallel(func (motion):
-						# Transition to green
-						motion.prop("modulate", func (motion):
-							motion.ease_out(Color.GREEN, 0.25)
-						)
-						# Repeat rotate and scale 3 times
-						motion.repeat(3, func (motion, _idx): 
-							motion.parallel(func (motion):
-								# Rotate 90 degrees and snap back to 0 when finishing rotation
-								motion.prop("rotation", func (motion):
-									motion.ease_out(PI * 0.5, 0.25, 3.0).frame(0.0).wait(0.75)
-								)
-								# Scale to 1.25 then scale back to 1.0 (bounce)
-								motion.prop("scale", func (motion):
-									motion.ease_out(Vector2(1.25, 1.25), 0.1).ease_in_out(Vector2(1.0, 1.0), 0.7)
-								)
-							)
-						)
+					# Scale to 1.25
+					motion.prop("scale", func (motion): motion.ease_out(Vector2(1.25, 1.25), 0.1))
+
+					# Play 'shake' animation
+					motion.prop("rotation", func (motion):
+						motion.repeat(4, func (motion, i):
+							var rot: float = deg_to_rad(10.0) * (1.0 - i / 4.0)
+							motion.ease_in_out(rot, 0.05).ease_in_out(-rot, 0.05)
+						).ease_in_out(0.0, 0.1)
 					)
-				# And other animation when not completed
+
+					# Scale back to 1.0
+					motion.prop("scale", func (motion): motion.ease_out(Vector2(1.0, 1.0), 0.1))
+				# Play animation on not completed
 				else:
+					# Reset scale and rotation
 					motion.parallel(func (motion):
-						# Transition to white
-						motion.prop("modulate", func (motion):
-							motion.ease_in_out(Color.WHITE, 0.5)
-						)
-						# Rotate back to 0.0
-						motion.prop("rotation", func (motion):
-							motion.ease_in_out(0.0, 0.5)
-						)
-						# Scale back to 0.0
-						motion.prop("scale", func (motion):
-							motion.ease_in_out(Vector2(1.0, 1.0), 0.5)
-						)
+						motion.prop("scale", func (motion): motion.ease_in_out(Vector2(1.0, 1.0), 0.25))
+						motion.prop("rotation", func (motion): motion.ease_in_out(0.0, 0.25))
 					)
 			)
 
