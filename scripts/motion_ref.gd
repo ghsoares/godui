@@ -1,6 +1,8 @@
 extends RefCounted
 class_name MotionRef
 
+## Class used to dynamically animate properties, the animation keyframes are updated alongside with the UI's update, and are processed every frame
+
 ## The target node reference
 var __node: Node
 
@@ -19,10 +21,10 @@ var __key_duration: float
 ## Is parallel?
 var __key_parallel: bool
 
-## Animation should loop?
+## Motion should loop?
 var __loop: bool = false
 
-## The keyframes of the animation (each key is a property)
+## The keyframes of the motion (each key is a property)
 var __keyframes: Dictionary = {}
 
 ## Called to initialize
@@ -44,7 +46,7 @@ func __get_track(name: String) -> Array:
 		__keyframes[name] = track
 	return track
 
-## Clear the animation
+## Clear the motion
 func __clear() -> void:
 	# Clear state
 	__key_prop = ""
@@ -99,7 +101,7 @@ func __animate() -> void:
 		# Set interpolated
 		__node.set(prop, val0 + (val1 - val0) * t)
 
-## Called to reset the animation
+## Called to reset the motion
 func reset() -> void:
 	__time = 0.0
 

@@ -23,7 +23,8 @@ func render_task(ui: UI, task: Dictionary) -> void:
 			var color_rect_motion: Dictionary = {"ref": null}
 
 			# Add the completed mark
-			var btn: UIRef = ui.add(Button).theme_variation("ButtonCheck").props({
+			var btn: UIRef = ui.add(Button).shrink_center().theme_variation("ButtonCheck").props({
+				"custom_minimum_size": Vector2(16.0, 16.0),
 				"button_pressed": task.completed,
 				"toggle_mode": true,
 				"action_mode": 0
@@ -50,16 +51,20 @@ func render_task(ui: UI, task: Dictionary) -> void:
 				# Run one animation when completed
 				if task.completed:
 					motion.parallel(func (motion):
+						# Transition to green
 						motion.prop("modulate", func (motion):
 							motion.ease_out(Color.GREEN, 0.25)
 						)
+						# Repeat rotate and scale 3 times
 						motion.repeat(3, func (motion, _idx): 
 							motion.parallel(func (motion):
+								# Rotate 90 degrees and snap back to 0 when finishing rotation
 								motion.prop("rotation", func (motion):
 									motion.ease_out(PI * 0.5, 0.25, 3.0).frame(0.0).wait(0.75)
 								)
+								# Scale to 1.25 then scale back to 1.0 (bounce)
 								motion.prop("scale", func (motion):
-									motion.ease_out(Vector2(1.1, 1.1), 0.1).ease_in_out(Vector2(1.0, 1.0), 0.7)
+									motion.ease_out(Vector2(1.25, 1.25), 0.1).ease_in_out(Vector2(1.0, 1.0), 0.7)
 								)
 							)
 						)
@@ -67,11 +72,17 @@ func render_task(ui: UI, task: Dictionary) -> void:
 				# And other animation when not completed
 				else:
 					motion.parallel(func (motion):
+						# Transition to white
 						motion.prop("modulate", func (motion):
-							motion.ease_out(Color.WHITE, 0.25)
+							motion.ease_in_out(Color.WHITE, 0.5)
 						)
+						# Rotate back to 0.0
 						motion.prop("rotation", func (motion):
-							motion.ease_out(0.0, 0.25)
+							motion.ease_in_out(0.0, 0.5)
+						)
+						# Scale back to 0.0
+						motion.prop("scale", func (motion):
+							motion.ease_in_out(Vector2(1.0, 1.0), 0.5)
 						)
 					)
 			)
