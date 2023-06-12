@@ -4,37 +4,59 @@ class_name MotionRef
 ## The node reference
 var __node: Node
 
-## Current property
-var __prop: String
+## Current track
+var __track: Dictionary
 
 ## Current time
 var __time: float
 
-## Current track time
-var __track_time: float
-
-## Current track next time
-var __track_next_time: float
+## Animation keyframes
+var __keyframes: Dictionary
 
 ## Called to initialize
 func _init(node: Node) -> void:
 	__node = node
 
+## Called to clear the keyframes
+func clear() -> void:
+	__keyframes.clear()
+
 ## Animate property
 func prop(name: String, motion_callable: Callable) -> MotionRef:
-	# Previous property
-	var p: String = __prop
+	# Previous track
+	var t: Dictionary = __track
 
-	# Set property
-	__prop = name
+	# Check if already exists
+	var track = __keyframes.get(name)
+	if track == null:
+		track = {
+			"time": 0.0,
+			"len": 0.0,
+			"frames": []
+		}
+		__keyframes[name] = track
+	
+	# Set track
+	__track = track
 
 	# Call callable
 	motion_callable.call(self)
 
-	# Set property back
-	__prop = p
+	# Set track back
+	__track = t
 
 	return self
 
-## Linearly interpolate to 
+## Initialize with initial value
+func initial(val) -> MotionRef:
+	var time: float = __track.time
+	var len: float = __track.len
+	var frames: Array = __track.frames
+
+	frames.append({
+		"time": time,
+		
+	})
+
+	return self
 

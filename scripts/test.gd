@@ -20,12 +20,24 @@ func render_task(ui: UI, task: Dictionary) -> void:
 		# Add a vbox
 		ui.add(HBoxContainer).show(func (ui):
 			# Add the completed mark
-			ui.add(CheckBox).prop("button_pressed", task.completed).sig("toggled", func (pressed):
+			var btn: UIRef = ui.add(Button).theme_variation(
+				"ButtonCheck"
+			).prop(
+				"button_pressed", task.completed
+			).sig("toggled", func (pressed):
 				# Set completed as pressed
 				task.completed = pressed
 
 				# Queue UI update
 				ui.queue_update()
+			).motion(func (motion):
+				motion.prop("modulate", func (motion):
+					motion.initial(Color.WHITE)
+					motion.linear(Color.RED, 0.25)
+					motion.linear(Color.GREEN, 0.25)
+					motion.linear(Color.BLUE, 0.25)
+					motion.loop(0.25)
+				)
 			)
 
 			# Add the task name line edit
