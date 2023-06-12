@@ -140,6 +140,36 @@ func parallel(motion_callable: Callable) -> MotionRef:
 	# Chain calls
 	return self
 
+## Inverse of parallel, used to chain multiple properties one after another
+func chain(motion_callable: Callable) -> MotionRef:
+	# Store state
+	var key_parallel: bool = __key_parallel
+	var key_time: float = __key_time
+	var key_duration: float = __key_duration
+
+	# Set self parallel to false
+	__key_parallel = false
+
+	# Set duration
+	__key_duration = 0.0
+
+	# Call callable
+	motion_callable.call(self)
+
+	# Seek time
+	if not key_parallel:
+		__key_time = key_time + __key_duration
+		__key_duration = key_duration + __key_duration
+	else:
+		__key_time = key_time
+		__key_duration = max(key_duration, __key_duration)
+	
+	# Set parallel to previous state
+	__key_parallel = key_parallel
+
+	# Chain calls
+	return self
+
 ## Called to animate a property
 func prop(name: String, motion_callable: Callable) -> MotionRef:
 	# Store state
@@ -249,18 +279,18 @@ func ease_linear(val, duration: float) -> MotionRef:
 	return self.ease(val, duration, 1.0)
 
 ## Called to ease in to value
-func ease_in(val, duration: float, strength: float = 3.0) -> MotionRef:
+func ease_in(val, duration: float, strength: float = 2.0) -> MotionRef:
 	return self.ease(val, duration, strength)
 
 ## Called to ease out to value
-func ease_out(val, duration: float, strength: float = 3.0) -> MotionRef:
+func ease_out(val, duration: float, strength: float = 2.0) -> MotionRef:
 	return self.ease(val, duration, 1.0 / strength)
 
 ## Called to ease in-out to value
-func ease_in_out(val, duration: float, strength: float = 3.0) -> MotionRef:
+func ease_in_out(val, duration: float, strength: float = 2.0) -> MotionRef:
 	return self.ease(val, duration, -strength)
 
 ## Called to ease out-in to value
-func ease_out_in(val, duration: float, strength: float = 3.0) -> MotionRef:
+func ease_out_in(val, duration: float, strength: float = 2.0) -> MotionRef:
 	return self.ease(val, duration, -(1.0 / strength))
 

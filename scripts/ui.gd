@@ -19,6 +19,9 @@ var __child_idx: int
 ## Current style reference
 var __style: StyleRef
 
+## UI temporary state (state variables that are forgot to the next frame)
+var __temp_state: Dictionary
+
 ## Called to initialize
 func _init(parent: Node, root: UI = null) -> void:
 	# Is root
@@ -81,6 +84,29 @@ func add(t: Object, key = null) -> UIRef:
 	# Return the cached reference
 	return ref
 
+## Called to get a temporary state
+func get_temporary_state(name: String, default_value = null):
+	if __temp_state.has(name):
+		return __temp_state[name].value
+	return default_value
+
+## Called to set a temporary state
+func set_temporary_state(name: String, value) -> UI:
+	__temp_state[name] = {
+		"value": value,
+		"remove": false
+	}
+
+	return self
+
+## Called to check if an event were triggered
+func event(name: String) -> bool:
+	return get_temporary_state("__gudui:event[%s]" % name, false)
+
+## Called to mark an named event as triggered and updates the interface
+func trigger_event(name: String) -> UI:
+	return set_temporary_state("__gudui:event[%s]" % name, true)
+
 ## Return style reference
 func style(style_callable: Callable) -> UI:
 	# Create new style ref
@@ -124,6 +150,10 @@ func __update(update_callable: Callable) -> void:
 		# Reset index
 		t.idx = 0
 	
+	# Mark temporary values	to remove
+	for s in __temp_state.values():
+		s.remove = true
+
 	# Reset child index
 	__child_idx = 0
 	
@@ -143,6 +173,11 @@ func __update(update_callable: Callable) -> void:
 			# Remove from parent if deleted
 			if n.__deletion:
 				n.__remove()
+	
+	# Remove temporary states
+	for k in __temp_state.keys():
+		if __temp_state[k].remove:
+			__temp_state.erase(k)
 
 ## Internal UI idle update
 func __idle_update(delta: float) -> void:
