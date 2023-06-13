@@ -54,8 +54,8 @@ func render_task(ui: UI, task: Dictionary) -> void:
 					# Play 'shake' animation
 					motion.prop("rotation", func (motion):
 						motion.repeat(4, func (motion, i):
-							var rot: float = deg_to_rad(10.0) * (1.0 - i / 4.0)
-							motion.ease_in_out(rot, 0.05).ease_in_out(-rot, 0.05)
+							var rot: float = deg_to_rad(15.0) * (1.0 - i / 4.0)
+							motion.ease_in_out(rot, 0.08).ease_in_out(-rot, 0.08)
 						).ease_in_out(0.0, 0.1)
 					)
 
