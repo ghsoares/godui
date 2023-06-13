@@ -11,12 +11,15 @@ var task_id: int = 0
 
 ## Called when ready
 func _ready() -> void:
-	ui = UI.new(self)
+	ui = UI.create(self)
 
 ## Renders a single task
 func render_task(ui: UI, task: Dictionary) -> void:
+	# The panel motion reference
+	var panel_motion: Dictionary = {"ref": null}
+
 	# Add a panel container
-	ui.add(PanelContainer).show(func (ui):
+	ui.add(PanelContainer).prop("modulate", Color.WHITE).show(func (ui):
 		# Add a vbox
 		ui.add(HBoxContainer).show(func (ui):
 			# The completed button motion ref (must use a dictionary to pass references between callables)
@@ -42,7 +45,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 			).motion(func (motion):
 				# Set motion reference
 				completed_button_motion.ref = motion
-
+				
 				# Play animation on completed
 				if task.completed:
 					# Scale to 1.25
@@ -80,20 +83,37 @@ func render_task(ui: UI, task: Dictionary) -> void:
 			)
 
 			# Add a delete button
-			ui.button("Delete").sig("pressed", func ():
-				# Delete task
-				tasks.erase(task.id)
+			ui.button("Delete").prop("disabled", task.removed).sig("pressed", func ():
+				# Mark as removed
+				task.removed = true
+
+				# Play panel motion
+				if panel_motion.ref: panel_motion.ref.reset()
 
 				# Queue UI update
 				ui.queue_update()
 			)
 		)
+	).motion(func (motion):
+		panel_motion.ref = motion
+
+		# Play animation on removed
+		if task.removed:
+			motion.prop("modulate", func (motion):
+				motion.ease_linear(Color.TRANSPARENT, 0.5)
+			).callback(func ():
+				# Erase for real now
+				tasks.erase(task.id)
+
+				# Queue UI update
+				ui.queue_update()
+			)
 	)
 
 ## Creates a new task
 func new_task() -> void:
 	# Create the task
-	var task: Dictionary = {"id": task_id, "name": "New task", "completed": false}
+	var task: Dictionary = {"id": task_id, "name": "New task", "completed": false, "removed": false}
 	
 	# Add to tasks array
 	tasks[task_id] = task
@@ -106,24 +126,26 @@ func new_task() -> void:
 
 ## Called to update the ui
 func ui_process(ui: UI) -> void:
-	# Main panel
-	ui.add(PanelContainer).theme_variation("BaseContainer").full_rect().show(func (ui):
-		# Create a vertical section
-		ui.add(VBoxContainer).show(func (ui):
-			# Add a label
-			ui.label("Tasks")
+	ui.add(Button).prop("text", "Test")
+	# print(PanelContainer)
+	# # Main panel
+	# ui.add(PanelContainer).theme_variation("BaseContainer").full_rect().show(func (ui):
+	# 	# Create a vertical section
+	# 	ui.add(VBoxContainer).show(func (ui):
+	# 		# Add a label
+	# 		ui.label("Tasks")
 
-			# Create a scroll to show the tasks
-			ui.add(ScrollContainer).expand_fill().show(func (ui):
-				ui.add(VBoxContainer).expand_fill().show(func (ui):
-					# For each task, render it
-					for t in tasks.values():
-						render_task(ui, t)
-				)
-			)
+	# 		# Create a scroll to show the tasks
+	# 		ui.add(ScrollContainer).expand_fill().show(func (ui):
+	# 			ui.add(VBoxContainer).expand_fill().show(func (ui):
+	# 				# For each task, render it
+	# 				for t in tasks.values():
+	# 					render_task(ui, t)
+	# 			)
+	# 		)
 
-			# Add a new task button
-			ui.button("New task").prop("action_mode", 0).sig("pressed", new_task)
-		)
-	)
+	# 		# Add a new task button
+	# 		ui.button("New task").prop("action_mode", 0).sig("pressed", new_task)
+	# 	)
+	# )
 

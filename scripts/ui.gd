@@ -1,8 +1,8 @@
 extends RefCounted
-class_name UI
+class_name _UI
 
-## The root UI
-var __root: UI
+## The root _UI
+var __root: _UI
 
 ## The parent node
 var __parent: Node
@@ -19,11 +19,11 @@ var __child_idx: int
 ## Current style reference
 var __style: StyleRef
 
-## UI temporary state (state variables that are forgot to the next frame)
+## _UI temporary state (state variables that are forgot to the next frame)
 var __temp_state: Dictionary
 
 ## Called to initialize
-func _init(parent: Node, root: UI = null) -> void:
+func _init(parent: Node, root: _UI = null) -> void:
 	# Is root
 	if root == null:
 		assert(parent.has_method("ui_process"), "target node must have a 'ui_process' function")
@@ -35,9 +35,12 @@ func _init(parent: Node, root: UI = null) -> void:
 	__repaint = true
 
 ## Called to add a node to self
-func add(t: Object, key = null) -> UIRef:
-	# Key must be null or string
-	assert(key == null or key is String, "'key' must be null or a string")
+func add(t: Object, key = null) -> _UIRef:
+	# If key is not null, convert to string
+	if key != null:
+		key = str(key)
+	
+	# Check if it doesn't start with reserved key
 	assert(key == null or not key.begins_with("__gudui_id:"), "'key' can't start with reserved string '__gudui:'")
 
 	# Get the cached references from type
@@ -50,11 +53,11 @@ func add(t: Object, key = null) -> UIRef:
 	var index: String = "__gudui_id:%d" % (children.idx + 1) if key == null else key
 
 	# Get the cached reference
-	var ref: UIRef = children.nodes.get(index)
+	var ref: _UIRef = children.nodes.get(index)
 
 	# Create the cached reference
 	if ref == null:
-		ref = UIRef.new()
+		ref = _UIRef.new()
 		ref.__index = index
 		ref.__ui = self
 		ref.__node = t.new()
@@ -91,7 +94,7 @@ func get_temporary_state(name: String, default_value = null):
 	return default_value
 
 ## Called to set a temporary state
-func set_temporary_state(name: String, value) -> UI:
+func set_temporary_state(name: String, value) -> _UI:
 	__temp_state[name] = {
 		"value": value,
 		"remove": false
@@ -104,11 +107,11 @@ func event(name: String) -> bool:
 	return get_temporary_state("__gudui:event[%s]" % name, false)
 
 ## Called to mark an named event as triggered and updates the interface
-func trigger_event(name: String) -> UI:
+func trigger_event(name: String) -> _UI:
 	return set_temporary_state("__gudui:event[%s]" % name, true)
 
 ## Return style reference
-func style(style_callable: Callable) -> UI:
+func style(style_callable: Callable) -> _UI:
 	# Create new style ref
 	if not __style:
 		__style = StyleRef.new(__parent, false)
@@ -120,7 +123,7 @@ func style(style_callable: Callable) -> UI:
 	return self
 
 ## Queues update in root
-func queue_update() -> UI:
+func queue_update() -> _UI:
 	__root.__repaint = true
 
 	# Chain calls
@@ -138,7 +141,7 @@ func __frame_update() -> void:
 	# Idle update
 	__idle_update(__parent.get_process_delta_time())
 
-## Internal UI update
+## Internal _UI update
 func __update(update_callable: Callable) -> void:
 	# Clears self
 	for t in __children.values():
@@ -179,7 +182,7 @@ func __update(update_callable: Callable) -> void:
 		if __temp_state[k].remove:
 			__temp_state.erase(k)
 
-## Internal UI idle update
+## Internal _UI idle update
 func __idle_update(delta: float) -> void:
 	# Update children
 	for t in __children.values():
@@ -189,22 +192,22 @@ func __idle_update(delta: float) -> void:
 #region Common nodes functions
 
 ## Adds a label with text 
-func label(text: String) -> UIRef:
+func label(text: String) -> _UIRef:
 	# Add label with text property
 	return add(Label).prop("text", text)
 
 ## Adds a button with text
-func button(text: String) -> UIRef:
+func button(text: String) -> _UIRef:
 	return add(Button).prop("text", text)
 
 ## Adds a horizontal scroll
-func horizontal_scroll(add_children_callable: Callable) -> UIRef:
+func horizontal_scroll(add_children_callable: Callable) -> _UIRef:
 	return add(ScrollContainer).show(func (ui):
 		ui.add(HBoxContainer).expand_fill().show(add_children_callable)
 	)
 
 ## Adds a vertical scroll
-func vertical_scroll(add_children_callable: Callable) -> UIRef:
+func vertical_scroll(add_children_callable: Callable) -> _UIRef:
 	return add(ScrollContainer).show(func (ui):
 		ui.add(VBoxContainer).expand_fill().show(add_children_callable)
 	)

@@ -3,8 +3,17 @@ class_name MotionRef
 
 ## Class used to dynamically animate properties, the animation keyframes are updated alongside with the UI's update, and are processed every frame
 
+## The types of tracks
+enum TrackType {
+	Property,
+	Callback
+}
+
 ## The target node reference
 var __node: Node
+
+## Previous time
+var __prev_time: float
 
 ## Current time
 var __time: float
@@ -24,17 +33,27 @@ var __key_parallel: bool
 ## Motion should loop?
 var __loop: bool = false
 
-## The keyframes of the motion (each key is a property)
-var __keyframes: Dictionary = {}
+## The tracks of the motion
+var __tracks: Dictionary = {}
+
+## Current track of the motion
+var __track: Array = []
 
 ## Called to initialize
 func _init(node: Node) -> void:
 	__node = node
 	__clear()
 
-## Get property track
-func __get_track(name: String) -> Array:
-	var track = __keyframes.get(name)
+## Get a property track
+func __get_property_track(name: String) -> Array:
+	# Get tracks of type property
+	var property_track = __tracks.get(TrackType.Property)
+	if property_track == null:
+		property_track = {}
+		__tracks[TrackType.Property] = property_track
+	
+	# Get track for property
+	var track = property_track.get(name)
 	if track == null:
 		assert(__node.get(name) != null)
 		track = [{
@@ -43,7 +62,18 @@ func __get_track(name: String) -> Array:
 			"value": __node.get(name),
 			"ease": 0.0
 		}]
-		__keyframes[name] = track
+		property_track[name] = track
+	return track
+
+## Get the callback track
+func __get_callback_track() -> Array:
+	# Get tracks of type callback
+	var track = __tracks.get(TrackType.Callback)
+	if track == null:
+		track = []
+		__tracks[TrackType.Callback] = track
+	
+	# Return the track
 	return track
 
 ## Clear the motion
@@ -54,56 +84,109 @@ func __clear() -> void:
 	__key_duration = 0.0
 	__key_parallel = false
 	__loop = false
-	__keyframes.clear()
+	__tracks.clear()
 
 ## Called to animate based on time
 func __animate() -> void:
 	# Frames is empty
-	if __keyframes.is_empty(): return
+	if __tracks.is_empty(): return
 	
-	# Should loop
+	# Loop animation
 	if __loop:
-		__time = fmod(__time, __key_duration) if __key_duration > 0.0 else 0.0
+		__update_keyframes()
+		if __time > __key_duration:
+			__prev_time -= __key_duration
+			__time -= __key_duration
+			__update_keyframes()
+	else:
+		__update_keyframes()
 
-	# For each property track
-	for prop in __keyframes:
+	# Set previous time
+	__prev_time = __time
+
+## Called to update keyframes based on a time
+func __update_keyframes() -> void:
+	# Get property track
+	var prop_track = __tracks.get(TrackType.Property)
+	if prop_track != null:
+		# For each property track
+		for prop in prop_track:
+			# Get track
+			var track: Array = prop_track[prop]
+
+			# Get track size
+			var track_size: int = track.size()
+
+			# Is empty
+			if track.is_empty(): continue
+			
+			# Get keyframe index
+			var idx: int = 0
+
+			# Get keyframes
+			for i in range(track_size - 1, -1, -1):
+				# Get keyframe info
+				var key: Dictionary = track[i]
+				
+				# Get start and end time
+				var t0: float = key.time
+				var t1: float = key.time + key.duration
+
+				# Check if overlaps
+				if __time >= t0:
+					idx = i
+					break
+			
+			# Get previous keyframe index
+			var prev_idx: int = max(idx - 1, 0)
+
+			# Get keyframes info
+			var key0: Dictionary = track[prev_idx]
+			var key1: Dictionary = track[idx]
+			
+			# Get interpolation factor
+			var t: float = (__time - key1.time)
+			if key1.duration == 0.0:
+				t = 0.0 if __time < key1.time else 1.0
+			else:
+				t = clamp((__time - key1.time) / key1.duration, 0.0, 1.0)
+			t = ease(t, key1.ease)
+			
+			# Get start and end value
+			var val0 = key0.value
+			var val1 = key1.value
+
+			# Set interpolated
+			__node.set(prop, val0 + (val1 - val0) * t)
+
+	# Get callback track
+	var call_track = __tracks.get(TrackType.Callback)
+	if call_track != null:
 		# Get track
-		var track: Array = __keyframes[prop]
+		var track: Array = call_track
+
+		# Get track size
+		var track_size: int = track.size()
 
 		# Is empty
-		if track.is_empty(): continue
+		if not track.is_empty():
+			# Get keyframes
+			for i in range(track_size - 1, -1, -1):
+				# Get keyframe info
+				var key: Dictionary = track[i]
+				
+				# Get callback time
+				var t: float = key.time
 
-		# Get keyframes
-		var idx0 = 0
-		var idx1 = 0
-		for i in range(track.size() - 1, -1, -1):
-			if __time >= track[i].time:
-				idx0 = max(i - 1, 0)
-				idx1 = i
-				break
-
-		# Get keyframes info
-		var key0: Dictionary = track[idx0]
-		var key1: Dictionary = track[idx1]
-		
-		# Get interpolation factor
-		var t: float = (__time - key1.time)
-		if key1.duration == 0.0:
-			t = 0.0 if __time < key1.time else 1.0
-		else:
-			t = clamp((__time - key1.time) / key1.duration, 0.0, 1.0)
-		t = ease(t, key1.ease)
-		
-		# Get start and end value
-		var val0 = key0.value
-		var val1 = key1.value
-
-		# Set interpolated
-		__node.set(prop, val0 + (val1 - val0) * t)
+				# Check if overlaps
+				if __prev_time <= t and __time >= t:
+					# Call it
+					key.callable.call()
 
 ## Called to reset the motion
 func reset() -> void:
 	__time = 0.0
+	__prev_time = 0.0
 
 ## Called to set loopable
 func loop(enabled: bool) -> MotionRef:
@@ -172,7 +255,7 @@ func chain(motion_callable: Callable) -> MotionRef:
 	# Chain calls
 	return self
 
-## Called to animate a property
+## Called to animate a property track
 func prop(name: String, motion_callable: Callable) -> MotionRef:
 	# Store state
 	var key_parallel: bool = __key_parallel
@@ -184,8 +267,14 @@ func prop(name: String, motion_callable: Callable) -> MotionRef:
 	self.__key_parallel = false
 	self.__key_duration = 0.0
 
+	# Get property track
+	__track = __get_property_track(name)
+
 	# Call callable
 	motion_callable.call(self)
+
+	# Set track to empty
+	__track = []
 
 	# Seek time
 	if not key_parallel:
@@ -206,11 +295,8 @@ func keyframe(val, duration: float, ease: float) -> MotionRef:
 	# Invalid duration
 	assert(duration >= 0.0)
 
-	# Get track
-	var track: Array = __get_track(__key_prop)
-
-	# Append a single keyframe
-	track.append({
+	# Append a single property keyframe
+	__track.append({
 		"time": __key_time,
 		"duration": duration,
 		"value": val,
@@ -223,6 +309,20 @@ func keyframe(val, duration: float, ease: float) -> MotionRef:
 		__key_duration += duration
 	else:
 		__key_duration = max(__key_duration, duration)
+
+	# Chain call
+	return self
+
+## Called to call a function
+func callback(callable: Callable) -> MotionRef:
+	# Get callback track
+	__track = __get_callback_track()
+
+	# Append a single callback keyframe
+	__track.append({
+		"time": __key_time,
+		"callable": callable
+	})
 
 	# Chain call
 	return self

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name UIRef
+class_name _UIRef
 
 ## A simple NULL constant
 const __NULL: Dictionary = {}
@@ -7,8 +7,8 @@ const __NULL: Dictionary = {}
 ## The unique index of this reference
 var __index: String
 
-## The UI node reference
-var __ui: UI
+## The _UI node reference
+var __ui: _UI
 
 ## The node reference
 var __node: Node
@@ -22,8 +22,8 @@ var __deletion: bool
 ## Is node inside tree?
 var __inside: bool
 
-## The child UI
-var __children: UI
+## The child _UI
+var __children: _UI
 
 ## Current style reference
 var __style: StyleRef
@@ -41,7 +41,7 @@ func _init() -> void:
 	__unit_regex.compile("^(\\d+(?:\\.\\d+)?) *(px|%)?$")
 
 ## Set a single property
-func prop(name: StringName, val) -> UIRef:
+func prop(name: StringName, val) -> _UIRef:
 	# Set in the node
 	if __node.get(name) != val:
 		__node.set(name, val)
@@ -50,7 +50,7 @@ func prop(name: StringName, val) -> UIRef:
 	return self
 
 ## Set multiple properties
-func props(props: Dictionary) -> UIRef:
+func props(props: Dictionary) -> _UIRef:
 	# For each key -> value pair, call prop
 	for k in props.keys():
 		prop(k, props[k])
@@ -59,7 +59,7 @@ func props(props: Dictionary) -> UIRef:
 	return self
 
 ## Connect to a signal
-func sig(name: StringName, target: Callable) -> UIRef:
+func sig(name: StringName, target: Callable) -> _UIRef:
 	# Get signal info
 	var sig_info = __signals.get(name)
 	if sig_info == null:
@@ -91,7 +91,7 @@ func sig(name: StringName, target: Callable) -> UIRef:
 	return self
 
 ## Return style reference
-func style(style_callable: Callable) -> UIRef:
+func style(style_callable: Callable) -> _UIRef:
 	# Create new style ref
 	if not __style:
 		__style = StyleRef.new(__node, true)
@@ -102,7 +102,7 @@ func style(style_callable: Callable) -> UIRef:
 	return self
 
 ## Return animation reference
-func motion(motion_callable: Callable) -> UIRef:
+func motion(motion_callable: Callable) -> _UIRef:
 	# Create new motion ref
 	if not __motion:
 		__motion = MotionRef.new(__node)
@@ -113,7 +113,7 @@ func motion(motion_callable: Callable) -> UIRef:
 	return self
 
 ## Set theme type variation
-func theme_variation(name: StringName) -> UIRef:
+func theme_variation(name: StringName) -> _UIRef:
 	assert(__node is Control)
 
 	# Set type variation
@@ -121,13 +121,13 @@ func theme_variation(name: StringName) -> UIRef:
 
 	return self
 
-## Build the child UI
-func show(update_child_ui_callable: Callable) -> UIRef:
-	# Creates a new UI
+## Build the child _UI
+func show(update_child_ui_callable: Callable) -> _UIRef:
+	# Creates a new _UI
 	if __children == null:
-		__children = UI.new(__node, __ui.__root)
+		__children = _UI.new(__node, __ui.__root)
 
-	# Update the UI
+	# Update the _UI
 	__children.__update(update_child_ui_callable)
 
 	return self
@@ -151,12 +151,14 @@ func __clear() -> void:
 	if __motion:
 		__motion.__clear()
 
-## Internal UI idle update
+## Internal _UI idle update
 func __idle_update(delta: float) -> void:
-	# Has an animation
-	if __motion:
-		__motion.__time += delta
-		__motion.__animate()
+	# Must be inside tree
+	if __inside:
+		# Has an animation
+		if __motion:
+			__motion.__time += delta
+			__motion.__animate()
 
 	# Update children
 	if __children:
@@ -189,6 +191,10 @@ func __remove() -> void:
 		if sig_info.target:
 			__node.disconnect(sig, sig_info.target)
 	
+	# Reset motion
+	if __motion:
+		__motion.reset()
+
 	# Clear signals
 	__signals.clear()
 
@@ -201,7 +207,7 @@ func __remove() -> void:
 #region Sizing functions
 
 ## Set size flags in a axis
-func axis_size_flags(axis: int, flags: int) -> UIRef:
+func axis_size_flags(axis: int, flags: int) -> _UIRef:
 	# Assert that is a control
 	assert(__node is Control)
 
@@ -217,7 +223,7 @@ func axis_size_flags(axis: int, flags: int) -> UIRef:
 	return self
 
 ## Expand fill in both axes
-func expand_fill() -> UIRef:
+func expand_fill() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_EXPAND_FILL)
 	axis_size_flags(1, Control.SIZE_EXPAND_FILL)
@@ -226,7 +232,7 @@ func expand_fill() -> UIRef:
 	return self
 
 ## Shrink center in both axes
-func shrink_center() -> UIRef:
+func shrink_center() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_SHRINK_CENTER)
 	axis_size_flags(1, Control.SIZE_SHRINK_CENTER)
@@ -235,7 +241,7 @@ func shrink_center() -> UIRef:
 	return self
 
 ## Shrink begin the control horizontally
-func horizontal_shrink_begin() -> UIRef:
+func horizontal_shrink_begin() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_SHRINK_BEGIN)
 
@@ -243,7 +249,7 @@ func horizontal_shrink_begin() -> UIRef:
 	return self
 
 ## Expand the control horizontally
-func horizontal_expand() -> UIRef:
+func horizontal_expand() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_EXPAND)
 
@@ -251,7 +257,7 @@ func horizontal_expand() -> UIRef:
 	return self
 
 ## Expand fill the control horizontally
-func horizontal_expand_fill() -> UIRef:
+func horizontal_expand_fill() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_EXPAND_FILL)
 
@@ -259,7 +265,7 @@ func horizontal_expand_fill() -> UIRef:
 	return self
 
 ## Shrink center the control horizontally
-func horizontal_shrink_center() -> UIRef:
+func horizontal_shrink_center() -> _UIRef:
 	# Set flags
 	axis_size_flags(0, Control.SIZE_SHRINK_CENTER)
 
@@ -267,7 +273,7 @@ func horizontal_shrink_center() -> UIRef:
 	return self
 
 ## Shrink begin the control vertically
-func vertical_shrink_begin() -> UIRef:
+func vertical_shrink_begin() -> _UIRef:
 	# Set flags
 	axis_size_flags(1, Control.SIZE_SHRINK_BEGIN)
 
@@ -275,7 +281,7 @@ func vertical_shrink_begin() -> UIRef:
 	return self
 
 ## Expand the control vertically
-func vertical_expand() -> UIRef:
+func vertical_expand() -> _UIRef:
 	# Set flags
 	axis_size_flags(1, Control.SIZE_EXPAND)
 
@@ -283,7 +289,7 @@ func vertical_expand() -> UIRef:
 	return self
 
 ## Expand fill the control vertically
-func vertical_expand_fill() -> UIRef:
+func vertical_expand_fill() -> _UIRef:
 	# Set flags
 	axis_size_flags(1, Control.SIZE_EXPAND_FILL)
 
@@ -291,7 +297,7 @@ func vertical_expand_fill() -> UIRef:
 	return self
 
 ## Shrink center the control vertically
-func vertical_shrink_center() -> UIRef:
+func vertical_shrink_center() -> _UIRef:
 	# Set flags
 	axis_size_flags(1, Control.SIZE_SHRINK_CENTER)
 
@@ -330,7 +336,7 @@ func __extract_anchor_unit(unit: String, invert: bool) -> PackedFloat32Array:
 	return a
 
 ## Positionate the left margin of the control based on a unit (String with suffixes % or px or a number in pixels)
-func left_margin(unit) -> UIRef:
+func left_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -349,7 +355,7 @@ func left_margin(unit) -> UIRef:
 	return self
 
 ## Positionate the top margin of the control based on a unit (String with suffixes % or px or a number in pixels)
-func top_margin(unit) -> UIRef:
+func top_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -368,7 +374,7 @@ func top_margin(unit) -> UIRef:
 	return self
 
 ## Positionate the right margin of the control based on a unit (String with suffixes % or px or a number in pixels)
-func right_margin(unit) -> UIRef:
+func right_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -387,7 +393,7 @@ func right_margin(unit) -> UIRef:
 	return self
 
 ## Positionate the bottom margin of the control based on a unit (String with suffixes % or px or a number in pixels)
-func bottom_margin(unit) -> UIRef:
+func bottom_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -406,7 +412,7 @@ func bottom_margin(unit) -> UIRef:
 	return self
 
 ## Positionate the horizontal anchors based on a unit margin (String with suffixes % or px or a number in pixels)
-func horizontal_margin(unit) -> UIRef:
+func horizontal_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -429,7 +435,7 @@ func horizontal_margin(unit) -> UIRef:
 	return self
 
 ## Positionate the vertical anchors based on a unit margin (String with suffixes % or px or a number in pixels)
-func vertical_margin(unit) -> UIRef:
+func vertical_margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -452,7 +458,7 @@ func vertical_margin(unit) -> UIRef:
 	return self
 
 ## Positionate all the anchors based on a unit margin (String with suffixes % or px or a number in pixels)
-func margin(unit) -> UIRef:
+func margin(unit) -> _UIRef:
 	assert(__node is Control)
 	assert(unit is String or unit is float or unit is int, "'unit' parameter must be a String, float or int")
 
@@ -483,7 +489,7 @@ func margin(unit) -> UIRef:
 	return self
 
 ## Positionate all the anchors to fill the parent rect
-func full_rect() -> UIRef:
+func full_rect() -> _UIRef:
 	assert(__node is Control)
 
 	# Set anchors and offset

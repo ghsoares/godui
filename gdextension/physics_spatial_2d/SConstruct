@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import os
+import sys
+
+env = SConscript("../godot-cpp/SConstruct")
+
+# For the reference:
+# - CCFLAGS are compilation flags shared between C and C++
+# - CFLAGS are for C-specific compilation flags
+# - CXXFLAGS are for C++-specific compilation flags
+# - CPPFLAGS are for pre-processor flags
+# - CPPDEFINES are for pre-processor defines
+# - LINKFLAGS are for linking flags
+
+# tweak this if you want to use different folders, or more folders, to store your source code in.
+env.Append(CPPPATH=["src/", "src/nodes/", "src/gizmos/", "src/util/"])
+sources = Glob("src/*.cpp") + Glob("src/nodes/*.cpp") + Glob("src/gizmos/*.cpp") + Glob("src/util/*.cpp")
+module_name = "physics_spatial_2d"
+bin_folder = "../../addons/physics_spatial_2d/bin"
+
+if env["platform"] == "macos":
+    library = env.SharedLibrary(
+        "{}/{}.{}.{}.framework/libgdexample.{}.{}".format(
+            bin_folder,
+            module_name, env["platform"], env["target"], 
+            module_name, env["platform"], env["target"]
+        ),
+        source=sources,
+    )
+else:
+    library = env.SharedLibrary(
+        "{}/{}{}{}".format(bin_folder, module_name, env["suffix"], env["SHLIBSUFFIX"]),
+        source=sources,
+    )
+
+Default(library)
