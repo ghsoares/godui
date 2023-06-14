@@ -1,7 +1,6 @@
 #include "register_types.h"
 
 #include "ui.h"
-#include "ui_ref.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -13,7 +12,6 @@ using namespace godot;
 void initialize_godui_module(ModuleInitializationLevel p_level) {
     switch (p_level) {
         case MODULE_INITIALIZATION_LEVEL_SCENE: {
-            ClassDB::register_class<UIRef>();
             ClassDB::register_class<UI>();
         } break;
     }
