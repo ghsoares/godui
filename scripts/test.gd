@@ -34,20 +34,15 @@ func render_task(ui: UI, task: Dictionary) -> void:
 			var completed_button_motion: Dictionary = {"ref": null}
 			
 			# Add the completed mark
-			var btn: UI = ui.add(Button)
-			btn.shrink_center()
-			btn.theme_variation("ButtonCheck")
-			btn.props({
+			var btn: UI = ui.add(Button).shrink_center().theme_variation("ButtonCheck").props({
 				"custom_minimum_size": Vector2(16.0, 16.0),
 				"pivot_offset": Vector2(8.0, 8.0),
 				"button_pressed": task.completed,
 				"toggle_mode": true,
 				"action_mode": 0
-			})
-			btn.event("toggled", func (pressed):
+			}).event("toggled", func (pressed):
 				# Set completed
 				task.completed = pressed
-				print("toggled!")
 
 				# # Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
 				# if completed_button_motion.ref:
