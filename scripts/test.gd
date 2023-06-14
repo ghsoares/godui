@@ -47,6 +47,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 			btn.event("toggled", func (pressed):
 				# Set completed
 				task.completed = pressed
+				print("toggled!")
 
 				# # Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
 				# if completed_button_motion.ref:
@@ -99,12 +100,17 @@ func render_task(ui: UI, task: Dictionary) -> void:
 				# Mark as removed
 				task.removed = true
 
+				# Erase for real now
+				tasks.erase(task.id)
+
 				# # Play panel motion
 				# if panel_motion.ref: panel_motion.ref.reset()
 
 				# Queue UI update
 				ui.queue_update()
 			)
+
+			label(ui, "ID: %s" % ui.ref().get_instance_id())
 		)
 	)
 
@@ -140,9 +146,6 @@ func new_task() -> void:
 
 ## Called to update the ui
 func ui_process(ui: UI) -> void:
-	print("a")
-	ui.props({"rect_size": Vector2.ZERO})
-	print("b")
 	# Main panel
 	ui.add(PanelContainer).theme_variation("BaseContainer").full_rect().show(func (ui):
 		# Create a vertical section

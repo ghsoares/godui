@@ -34,6 +34,8 @@ void UI::clear() {
 		}
 	}
 
+	node->set_block_signals(true);
+
 	child_idx = 0;
 	repaint = false;
 	deletion = false;
@@ -69,6 +71,8 @@ void UI::post_update() {
 			signal->value.disconnect = false;
 		}
 	}
+	
+	node->set_block_signals(false);
 }
 
 void UI::remove() {
@@ -160,13 +164,9 @@ Ref<UI> UI::prop(const NodePath &p_name, const Variant &p_val) {
 }
 
 Ref<UI> UI::props(const Dictionary &p_props) {
-	UtilityFunctions::print("a");
 	Array keys = p_props.keys();
-	UtilityFunctions::print("b");
 	for (int64_t i = keys.size() - 1; i >= 0; i--) {
 		NodePath p = NodePath((String)keys[i]);
-		UtilityFunctions::print("c");
-		UtilityFunctions::print(p);
 		prop(p, p_props[keys[i]]);
 	}
 
