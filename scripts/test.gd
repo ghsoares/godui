@@ -28,7 +28,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 	var completed_button_motion: Dictionary = {"ref": null}
 	
 	# Add a panel container
-	var main_panel: UI = ui.add(PanelContainer)
+	var main_panel: UI = ui.add(PanelContainer).prop("modulate", Color.WHITE)
 	
 	# Add a hbox inside container
 	var main_panel_hbox: UI = main_panel.add(HBoxContainer)
@@ -105,14 +105,14 @@ func render_task(ui: UI, task: Dictionary) -> void:
 		# Play animation on removed
 		if task.removed:
 			motion.prop("modulate", func (motion):
-				motion.current().linear(Color.TRANSPARENT, 0.5)
-			).callback(func ():
-				# Erase for real now
-				tasks.erase(task.id)
+				motion.current().linear(Color.TRANSPARENT, 0.5).callback(func ():
+					# Erase for real now
+					tasks.erase(task.id)
 
-				# Queue UI update
-				ui.queue_update()
-			).begin()
+					# Queue UI update
+					ui.queue_update()
+				)
+			)
 	)
 
 ## Creates a new task

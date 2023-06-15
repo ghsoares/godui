@@ -64,7 +64,7 @@ void MotionRef::animate() {
 
 				float t = key.time;
 
-				if (prev_time <= t && time >= t) {
+				if (prev_time <= t && time > t) {
 					key.target.call();
 					break;
 				}
@@ -81,7 +81,7 @@ float MotionRef::eval_time(uint8_t p_ease_type, float p_time, float p_strength) 
 		p_time = p_time < 0.0 ? 0.0 : (p_time > 1.0 ? 1.0 : p_time);
 	switch (p_ease_type) {
 		case 0: // Constant
-			return p_time < 1.0 ? 0.0 : 0.0;
+			return p_time < 1.0 ? 0.0 : 1.0;
 		case 1: // Linear
 			return p_time;
 		case 2: // Ease in
