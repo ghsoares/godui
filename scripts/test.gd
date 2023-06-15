@@ -25,105 +25,95 @@ func button(ui: UI, text: String) -> UI:
 func render_task(ui: UI, task: Dictionary) -> void:
 	# The panel motion reference
 	var panel_motion: Dictionary = {"ref": null}
+	var completed_button_motion: Dictionary = {"ref": null}
 	
 	# Add a panel container
-	var panel: UI = ui.add(PanelContainer).prop("modulate", Color.WHITE).show(func (ui):
-		# Add a vbox
-		ui.add(HBoxContainer).show(func (ui):
-			# The completed button motion ref (must use a dictionary to pass references between callables)
-			var completed_button_motion: Dictionary = {"ref": null}
-			
-			# Add the completed mark
-			var btn: UI = ui.add(Button).shrink_center().theme_variation("ButtonCheck").props({
-				"custom_minimum_size": Vector2(16.0, 16.0),
-				"pivot_offset": Vector2(8.0, 8.0),
-				"button_pressed": task.completed,
-				"toggle_mode": true,
-				"action_mode": 0
-			}).event("toggled", func (pressed):
-				# Set completed
-				task.completed = pressed
+	var main_panel: UI = ui.add(PanelContainer)
+	
+	# Add a hbox inside container
+	var main_panel_hbox: UI = main_panel.add(HBoxContainer)
 
-				# # Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
-				# if completed_button_motion.ref:
-				# 	completed_button_motion.ref.reset()
+	# Add the completed mark, make it shrink to center, add ButtonCheck as theme variation and set some properties
+	var completed_button: UI = main_panel_hbox.add(Button).shrink_center().theme_variation("ButtonCheck").props({
+		"custom_minimum_size": Vector2(16.0, 16.0),
+		"pivot_offset": Vector2(8.0, 8.0),
+		"button_pressed": task.completed,
+		"toggle_mode": true,
+		"action_mode": 0
+	}).event("toggled", func (pressed):
+		# Set completed
+		task.completed = pressed
 
-				# Queue UI update
-				ui.queue_update()
+		# Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
+		if completed_button_motion.ref:
+			completed_button_motion.ref.reset()
+
+		# Queue UI update
+		ui.queue_update()
+	)
+
+	# Add the task name LineEdit
+	main_panel_hbox.add(LineEdit).prop("text", task.name).horizontal_expand_fill().event("text_changed", func (new_text):
+		# Set task name
+		task.name = new_text
+
+		# Queue UI update
+		ui.queue_update()
+	)
+
+	# Add a delete button
+	button(main_panel_hbox, "Delete").prop("disabled", task.removed).event("pressed", func ():
+		# Mark as removed
+		task.removed = true
+
+		# Play panel motion
+		if panel_motion.ref: panel_motion.ref.reset()
+
+		# Queue UI update
+		ui.queue_update()
+	)
+	
+	completed_button.motion(func (motion):
+		# Set motion reference
+		completed_button_motion.ref = motion
+		
+		# Play animation on completed
+		if task.completed:
+			# Pulse to 1.25
+			motion.prop("scale", func (motion):
+				motion.current().ease_out(Vector2(1.25, 1.25), 0.1)
 			)
-			# btn.motion(func (motion):
-			# 	# Set motion reference
-			# 	completed_button_motion.ref = motion
-				
-			# 	# Play animation on completed
-			# 	if task.completed:
-			# 		# Scale to 1.25
-			# 		motion.prop("scale", func (motion): motion.ease_out(Vector2(1.25, 1.25), 0.1))
+			# Play 'shake' animation
+			motion.prop("rotation", func (motion): motion.current().shake(deg_to_rad(25.0), 0.5, 4.0))
 
-			# 		# Play 'shake' animation
-			# 		motion.prop("rotation", func (motion):
-			# 			motion.repeat(4, func (motion, i):
-			# 				var rot: float = deg_to_rad(15.0) * (1.0 - i / 4.0)
-			# 				motion.ease_in_out(rot, 0.08).ease_in_out(-rot, 0.08)
-			# 			).ease_in_out(0.0, 0.1)
-			# 		)
-
-			# 		# Scale back to 1.0
-			# 		motion.prop("scale", func (motion): motion.ease_out(Vector2(1.0, 1.0), 0.1))
-			# 	# Play animation on not completed
-			# 	else:
-			# 		# Reset scale and rotation
-			# 		motion.parallel(func (motion):
-			# 			motion.prop("scale", func (motion): motion.ease_in_out(Vector2(1.0, 1.0), 0.25))
-			# 			motion.prop("rotation", func (motion): motion.ease_in_out(0.0, 0.25))
-			# 		)
-			# )
-			# Add the task name line edit
-			ui.add(LineEdit).props({
-				"text": task.name,
-				"expand_to_text_length": true,
-			}).horizontal_expand_fill().event("text_changed", func (new_text):
-				# Set task name
-				task.name = new_text
-
-				# Queue UI update
-				ui.queue_update()
+			# Scale back to 1.0
+			motion.prop("scale", func (motion): motion.ease_out(Vector2(1.0, 1.0), 0.5))
+		# Play animation on not completed
+		else:
+			# Reset scale and rotation
+			motion.parallel(func (motion):
+				motion.prop("scale", func (motion):
+					motion.current().ease_in_out(Vector2(1.0, 1.0), 0.25)
+				)
+				motion.prop("rotation", func (motion): motion.current().ease_in_out(0.0, 0.25))
 			)
+	)
 
-			# Add a delete button
-			button(ui, "Delete").prop("disabled", task.removed).event("pressed", func ():
-				# Mark as removed
-				task.removed = true
+	main_panel.motion(func (motion):
+		panel_motion.ref = motion
 
+		# Play animation on removed
+		if task.removed:
+			motion.prop("modulate", func (motion):
+				motion.current().linear(Color.TRANSPARENT, 0.5)
+			).callback(func ():
 				# Erase for real now
 				tasks.erase(task.id)
 
-				# # Play panel motion
-				# if panel_motion.ref: panel_motion.ref.reset()
-
 				# Queue UI update
 				ui.queue_update()
-			)
-
-			label(ui, "ID: %s" % ui.ref().get_instance_id())
-		)
+			).begin()
 	)
-
-	# panel.motion(func (motion):
-	# 	panel_motion.ref = motion
-
-	# 	# Play animation on removed
-	# 	if task.removed:
-	# 		motion.prop("modulate", func (motion):
-	# 			motion.ease_linear(Color.TRANSPARENT, 0.5)
-	# 		).callback(func ():
-	# 			# Erase for real now
-	# 			tasks.erase(task.id)
-
-	# 			# Queue UI update
-	# 			ui.queue_update()
-	# 		)
-	# )
 
 ## Creates a new task
 func new_task() -> void:
@@ -142,26 +132,20 @@ func new_task() -> void:
 ## Called to update the ui
 func ui_process(ui: UI) -> void:
 	# Main panel
-	ui.add(PanelContainer).theme_variation("BaseContainer").full_rect().show(func (ui):
-		# Create a vertical section
-		ui.add(VBoxContainer).show(func (ui):
-			# Add a label
-			label(ui, "Tasks")
+	var main_panel: UI = ui.add(PanelContainer).theme_variation("BaseContainer").full_rect().add(VBoxContainer)
 
-			# Create a scroll to show the tasks
-			ui.add(ScrollContainer).expand_fill().show(func (ui):
-				ui.add(VBoxContainer).expand_fill().show(func (ui):
-					# For each task, render it
-					for t in tasks.values():
-						render_task(ui, t)
-				)
-			)
+	# Add a simple label to main panel
+	label(main_panel, "Tasks")
 
-			# Add a new task button
-			button(ui, "New task").prop("action_mode", 0).event("pressed", new_task)
-		)
-	)
+	# Add a vertical section to main panel
+	var scroll: UI = main_panel.add(ScrollContainer).expand_fill().add(VBoxContainer).expand_fill()
 
+	# For each task, render it to the scroll
+	for task in tasks.values():
+		render_task(scroll, task)
+	
+	# Add a new task button to main panel
+	button(main_panel, "New task").prop("action_mode", 0).event("pressed", new_task)
 
 
 

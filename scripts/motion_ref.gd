@@ -1,5 +1,5 @@
 extends RefCounted
-class_name MotionRef
+class_name _MotionRef
 
 ## Class used to dynamically animate properties, the animation keyframes are updated alongside with the UI's update, and are processed every frame
 
@@ -189,14 +189,14 @@ func reset() -> void:
 	__prev_time = 0.0
 
 ## Called to set loopable
-func loop(enabled: bool) -> MotionRef:
+func loop(enabled: bool) -> _MotionRef:
 	__loop = enabled
 
 	# Chain calls
 	return self
 
 ## Called to animate multiple properties parallely
-func parallel(motion_callable: Callable) -> MotionRef:
+func parallel(motion_callable: Callable) -> _MotionRef:
 	# Store state
 	var key_parallel: bool = __key_parallel
 	var key_time: float = __key_time
@@ -226,7 +226,7 @@ func parallel(motion_callable: Callable) -> MotionRef:
 	return self
 
 ## Inverse of parallel, used to chain multiple properties one after another
-func chain(motion_callable: Callable) -> MotionRef:
+func chain(motion_callable: Callable) -> _MotionRef:
 	# Store state
 	var key_parallel: bool = __key_parallel
 	var key_time: float = __key_time
@@ -256,7 +256,7 @@ func chain(motion_callable: Callable) -> MotionRef:
 	return self
 
 ## Called to animate a property track
-func prop(name: String, motion_callable: Callable) -> MotionRef:
+func prop(name: String, motion_callable: Callable) -> _MotionRef:
 	# Store state
 	var key_parallel: bool = __key_parallel
 	var key_time: float = __key_time
@@ -291,7 +291,7 @@ func prop(name: String, motion_callable: Callable) -> MotionRef:
 	return self
 
 ## Add a single transition keyframe
-func keyframe(val, duration: float, ease: float) -> MotionRef:
+func keyframe(val, duration: float, ease: float) -> _MotionRef:
 	# Invalid duration
 	assert(duration >= 0.0)
 
@@ -314,7 +314,7 @@ func keyframe(val, duration: float, ease: float) -> MotionRef:
 	return self
 
 ## Called to call a function
-func callback(callable: Callable) -> MotionRef:
+func callback(callable: Callable) -> _MotionRef:
 	# Get callback track
 	__track = __get_callback_track()
 
@@ -328,7 +328,7 @@ func callback(callable: Callable) -> MotionRef:
 	return self
 
 ## Simply advance time without keyframes
-func wait(duration: float) -> MotionRef:
+func wait(duration: float) -> _MotionRef:
 	assert(not __key_parallel, "'wait' doesn't work for parallel motion")
 	assert(duration >= 0.0)
 
@@ -340,7 +340,7 @@ func wait(duration: float) -> MotionRef:
 	return self
 
 ## Repeat a given motion n times
-func repeat(times: int, motion_callable: Callable) -> MotionRef:
+func repeat(times: int, motion_callable: Callable) -> _MotionRef:
 	# Store state
 	var key_parallel: bool = __key_parallel
 	var key_time: float = __key_time
@@ -369,30 +369,30 @@ func repeat(times: int, motion_callable: Callable) -> MotionRef:
 	return self
 
 ## Called to set value at time
-func frame(val) -> MotionRef:
+func frame(val) -> _MotionRef:
 	return self.keyframe(val, 0.0, 0.0)
 
 ## Called to ease to value
-func ease(val, duration: float, curve: float) -> MotionRef:
+func ease(val, duration: float, curve: float) -> _MotionRef:
 	return self.keyframe(val, duration, curve)
 
 ## Called to ease linearly to value
-func ease_linear(val, duration: float) -> MotionRef:
+func ease_linear(val, duration: float) -> _MotionRef:
 	return self.ease(val, duration, 1.0)
 
 ## Called to ease in to value
-func ease_in(val, duration: float, strength: float = 2.0) -> MotionRef:
+func ease_in(val, duration: float, strength: float = 2.0) -> _MotionRef:
 	return self.ease(val, duration, strength)
 
 ## Called to ease out to value
-func ease_out(val, duration: float, strength: float = 2.0) -> MotionRef:
+func ease_out(val, duration: float, strength: float = 2.0) -> _MotionRef:
 	return self.ease(val, duration, 1.0 / strength)
 
 ## Called to ease in-out to value
-func ease_in_out(val, duration: float, strength: float = 2.0) -> MotionRef:
+func ease_in_out(val, duration: float, strength: float = 2.0) -> _MotionRef:
 	return self.ease(val, duration, -strength)
 
 ## Called to ease out-in to value
-func ease_out_in(val, duration: float, strength: float = 2.0) -> MotionRef:
+func ease_out_in(val, duration: float, strength: float = 2.0) -> _MotionRef:
 	return self.ease(val, duration, -(1.0 / strength))
 

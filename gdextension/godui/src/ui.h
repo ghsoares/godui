@@ -1,6 +1,8 @@
 #ifndef GODUI_UI_H
 #define GODUI_UI_H
 
+#include "motion_ref.h"
+
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/control.hpp>
@@ -17,40 +19,18 @@ class UI : public RefCounted {
 		bool disconnect;
 	};
 
-	struct ChildTypeKey {
-		uint8_t type;
-		uint64_t value;
+	struct UINodeCollection {
+		uint64_t idx;
+		HashMap<String, Ref<UI>> children;
 
-		inline ChildTypeKey(): type(0), value(0) {}
-		inline ChildTypeKey(uint8_t p_type, uint64_t p_value): type(p_type), value(p_value) {}
-		
-		inline static ChildTypeKey from_class(Object *p_class) {
-			return ChildTypeKey(0, p_class->get_instance_id());
-		}
-		inline static ChildTypeKey from_callable(const Callable &p_callable) {
-			return ChildTypeKey(1, *(uint64_t *)((int64_t *)p_callable.hash()));
-		}
-
-		inline bool operator==(const ChildTypeKey &p_other) const {
-			return this->type == p_other.type && this->value == p_other.value;
-		}
-		inline bool operator!=(const ChildTypeKey &p_other) const {
-			return !(*this == p_other);
-		}
-
-		inline ChildTypeKey &operator=(const ChildTypeKey &p_other) {
-			this->type = p_other.type;
-			this->value = p_other.value;
-			return *this;
-		}
-
-		static uint32_t hash(const ChildTypeKey &p_key) {
-			return HashMapHasherDefault::hash(p_key.type) ^ HashMapHasherDefault::hash(p_key.value);
+		inline UINodeCollection() {
+			idx = 0;
+			children = HashMap<String, Ref<UI>>();
 		}
 	};
 
-	using UIChildren = HashMap<String, Ref<UI>>;
-	using UIChildrenTypes = HashMap<ChildTypeKey, UIChildren, ChildTypeKey>;
+	using UITypeCollection = HashMap<uint64_t, UINodeCollection>;
+	using UIChildrenCollection = HashMap<String, Ref<UI>>;
 
 	Ref<UI> root;
 	Ref<UI> parent;
@@ -60,30 +40,33 @@ class UI : public RefCounted {
 	bool deletion;
 	bool inside;
 	bool repaint;
-	UIChildrenTypes children;
+	UITypeCollection types;
 	uint64_t child_idx;
+	Ref<MotionRef> node_motion;
 
 protected:
 	static void _bind_methods();
 
-	void clear();
-	void idle_update(float p_delta);
+	void pre_update();
 	void ui_update(const Callable &p_ui_callable);
 	void post_update();
 	void remove();
+	void idle_update(float p_delta);
 
 	bool extract_anchor_unit(const char *p_unit, float &p_anchor_pos, float &p_anchor_off);
 public:
 	void frame_update();
 
-	Ref<UI> add(Variant p_type, const Variant &p_key);
+	Ref<UI> add(Object *p_type, const Variant &p_key);
 
 	Ref<UI> prop(const NodePath &p_name, const Variant &p_val);
 	Ref<UI> props(const Dictionary &p_props);
 
+	Ref<UI> motion(const Callable &p_motion_callable);
+
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
 
-	Ref<UI> show(const Callable &p_ui_callable);
+	Ref<UI> scope(const Callable &p_ui_callable);
 	Ref<UI> queue_update();
 
 	Node *ref();
@@ -125,6 +108,7 @@ public:
 	static Ref<UI> create_ui(Node *p_node, const Ref<UI> &p_parent_ui);
 
 	UI();
+	~UI();
 };
 
 }

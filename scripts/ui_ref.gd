@@ -29,7 +29,7 @@ var __children: _UI
 var __style: StyleRef
 
 ## Current motion reference
-var __motion: MotionRef
+var __motion: _MotionRef
 
 ## The unit regex
 var __unit_regex: RegEx
@@ -105,7 +105,7 @@ func style(style_callable: Callable) -> _UIRef:
 func motion(motion_callable: Callable) -> _UIRef:
 	# Create new motion ref
 	if not __motion:
-		__motion = MotionRef.new(__node)
+		__motion = _MotionRef.new(__node)
 
 	# Call callable
 	motion_callable.call(__motion)

@@ -13,40 +13,38 @@ using namespace godot;
 
 void UI::frame_update() {
 	if (repaint) {
-		clear();
-		ui_update(node->get("ui_process"));
+		pre_update();
+		// ui_update(node->get("ui_process"));
+		node->call("ui_process", this);
 		post_update();
 	}
 
 	idle_update(node->get_process_delta_time());
 }
 
-void UI::clear() {
-	for (UIChildrenTypes::Iterator type = children.begin(); type; ++type) {
-		for (UIChildren::Iterator child = type->value.begin(); child; ++child) {
-			if (child->value->inside) child->value->deletion = true;
+void UI::pre_update() {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		type->value.idx = 0;
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->pre_update();
 		}
 	}
-
+	
 	for (HashMap<String, SignalInfo>::Iterator signal = signals.begin(); signal; ++signal) {
 		if (!signal->value.target.is_null()) {
 			signal->value.disconnect = true;
 		}
 	}
 
+	if (node_motion.is_valid()) {
+		node_motion->clear();
+	}
+
 	node->set_block_signals(true);
 
 	child_idx = 0;
-	repaint = false;
-	deletion = false;
-}
-
-void UI::idle_update(float p_delta) {
-	for (UIChildrenTypes::Iterator type = children.begin(); type; ++type) {
-		for (UIChildren::Iterator child = type->value.begin(); child; ++child) {
-			child->value->idle_update(p_delta);
-		}
-	}
+	if (root.ptr() == this) repaint = false;
+	if (inside) deletion = true;
 }
 
 void UI::ui_update(const Callable &p_ui_callable) {
@@ -54,12 +52,11 @@ void UI::ui_update(const Callable &p_ui_callable) {
 }
 
 void UI::post_update() {
-	for (UIChildrenTypes::Iterator type = children.begin(); type; ++type) {
-		for (UIChildren::Iterator child = type->value.begin(); child; ++child) {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->post_update();
 			if (child->value->deletion) {
 				child->value->remove();
-			} else {
-				child->value->post_update();
 			}
 		}
 	}
@@ -84,60 +81,59 @@ void UI::remove() {
 		}
 	}
 
+	if (node_motion.is_valid()) {
+		node_motion->clear();
+		node_motion->reset();
+	}
+
 	signals.clear();
 
 	inside = false;
 	deletion = false;
 }
 
-Ref<UI> UI::add(Variant p_type, const Variant &p_key) {
+void UI::idle_update(float p_delta) {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->idle_update(p_delta);
+		}
+	}
+
+	if (inside && node_motion.is_valid()) {
+		node_motion->time += p_delta;
+		node_motion->animate();
+	}
+}
+
+Ref<UI> UI::add(Object *p_type, const Variant &p_key) {
+	ERR_FAIL_COND_V_MSG(
+		!p_type->has_method("new"),
+		this,
+		"Type must be a native class or a script"
+	);
+
+	uint64_t type_key = p_type->get_instance_id();
+	UITypeCollection::Iterator type = types.find(type_key);
+	if (!type) {
+		type = types.insert(type_key, UINodeCollection());
+	}
+
 	String index;
 
 	if (p_key.get_type() != Variant::NIL) {
 		index = p_key.stringify();
+		ERR_FAIL_COND_V_MSG(index.begins_with("__godui_ui:"), this, "Provided key can't begin with reserved string '__godui_ui:'");
 	} else {
-		index = vformat("__gudui_id:%d", child_idx);
+		index = vformat("__godui_id:%d", type->value.idx++);
 	}
 
-	ChildTypeKey type_key;
-
-	switch (p_type.get_type()) {
-		case Variant::OBJECT: {
-			ERR_FAIL_COND_V_MSG(
-				!((Object *)p_type)->has_method("new"),
-				this,
-				"Type must be a native class or a script"
-			);
-			type_key = ChildTypeKey::from_class(p_type);
-		} break;
-		case Variant::CALLABLE: {
-			type_key = ChildTypeKey::from_callable(p_type);
-		} break;
-		default: ERR_FAIL_V_MSG(this, "Invalid argument for type");
-	}
-
-	UIChildrenTypes::Iterator children = this->children.find(type_key);
-	if (!children) {
-		children = this->children.insert(type_key, UIChildren());
-	}
-
-	UIChildren::Iterator ref = children->value.find(index);
+	UIChildrenCollection::Iterator ref = type->value.children.find(index);
 	if (!ref) {
-		Node *node = nullptr;
-		switch (p_type.get_type()) {
-			case Variant::OBJECT: {
-				node = Object::cast_to<Node>(((Object *)p_type)->call("new"));
-			} break;
-			case Variant::CALLABLE: {
-				Variant ret = ((Callable)p_type).call();
-				ERR_FAIL_COND_V_MSG(ret.get_type() != Variant::OBJECT || !Object::cast_to<Node>(ret), this, "Function doesn't return a node");
-				node = Object::cast_to<Node>(ret);
-			} break;
-		}
+		Node *node = Object::cast_to<Node>(p_type->call("new"));
 		ERR_FAIL_COND_V_MSG(node == nullptr, Ref<UI>(), "Type must return a Node");
 		node->set_name(vformat("%s:%d", node->get_class(), child_idx + 1));
 
-		ref = children->value.insert(index, UI::create_ui(node, this));
+		ref = type->value.children.insert(index, UI::create_ui(node, this));
 		ref->value->index = index;
 	}
 
@@ -146,9 +142,9 @@ Ref<UI> UI::add(Variant p_type, const Variant &p_key) {
 		ref->value->inside = true;
 	}
 
-	node->move_child(ref->value->node, child_idx);
+	ref->value->deletion = false;
 
-	ref->value->clear();
+	node->move_child(ref->value->node, child_idx);
 
 	child_idx++;
 
@@ -165,9 +161,9 @@ Ref<UI> UI::prop(const NodePath &p_name, const Variant &p_val) {
 
 Ref<UI> UI::props(const Dictionary &p_props) {
 	Array keys = p_props.keys();
-	for (int64_t i = keys.size() - 1; i >= 0; i--) {
-		NodePath p = NodePath((String)keys[i]);
-		prop(p, p_props[keys[i]]);
+	for (int64_t i = keys.size(); i > 0; i--) {
+		NodePath p = NodePath((String)keys[i - 1]);
+		prop(p, p_props[keys[i - 1]]);
 	}
 
 	return this;
@@ -199,7 +195,7 @@ Ref<UI> UI::event(const String &p_signal_name, const Callable &p_target) {
 	return this;
 }
 
-Ref<UI> UI::show(const Callable &p_ui_callable) {
+Ref<UI> UI::scope(const Callable &p_ui_callable) {
 	ui_update(p_ui_callable);
 
 	return this;
@@ -212,6 +208,16 @@ Ref<UI> UI::queue_update() {
 
 Node *UI::ref() {
 	return node;
+}
+
+Ref<UI> UI::motion(const Callable &p_motion_callable) {
+	if (node_motion.is_null()) {
+		node_motion.instantiate();
+		node_motion->node = node;
+	}
+	p_motion_callable.call(node_motion);
+
+	return this;
 }
 
 Ref<UI> UI::theme_variation(const String &p_theme_type) {
@@ -480,7 +486,7 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 
 	if (p_parent_ui.is_null()) {
 		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), Ref<UI>(), "Target node must have a 'ui_process' function");
-		p_node->get_tree()->connect("process_frame", Callable(ui.ptr(), "frame_update"));
+		p_node->get_tree()->connect("process_frame", Callable(ui.ptr(), "_frame_update"));
 	}
 
 	return ui;
@@ -489,15 +495,16 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 void UI::_bind_methods() {
 	ClassDB::bind_static_method("UI", D_METHOD("create", "Node", "parent_ui"), &UI::create_ui, DEFVAL(Ref<UI>()));
 	
-	ClassDB::bind_method(D_METHOD("frame_update"), &UI::frame_update);
+	ClassDB::bind_method(D_METHOD("_frame_update"), &UI::frame_update);
 	ClassDB::bind_method(D_METHOD("add", "type", "key"), &UI::add, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
 	ClassDB::bind_method(D_METHOD("props", "props"), &UI::props);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);
-	ClassDB::bind_method(D_METHOD("show", "ui_callable"), &UI::show);
+	ClassDB::bind_method(D_METHOD("scope", "ui_callable"), &UI::scope);
 	ClassDB::bind_method(D_METHOD("queue_update"), &UI::queue_update);
 	ClassDB::bind_method(D_METHOD("ref"), &UI::ref);
 
+	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
 	ClassDB::bind_method(D_METHOD("theme_variation", "theme_type"), &UI::theme_variation);
 	
 	ClassDB::bind_method(D_METHOD("shrink_begin"), &UI::shrink_begin);
@@ -540,6 +547,13 @@ UI::UI() {
 	deletion = false;
 	inside = false;
 	repaint = true;
-	children = UIChildrenTypes();
+	types = UITypeCollection();
 	child_idx = 0;
+	node_motion = Ref<MotionRef>();
+}
+
+UI::~UI() {
+	node = nullptr;
+	signals.clear();
+	types.clear();
 }
