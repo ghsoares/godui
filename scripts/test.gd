@@ -9,24 +9,8 @@ var tasks: Dictionary
 ## Current task id
 var task_id: int = 0
 
-class Test:
-	func foo():
-		print("foo")
-		return self
-	func bar(arg):
-		print("bar: ", arg)
-		return self
-	func foobar():
-		print("foobar")
-		return 0.0
-	func test1():
-		print("test1")
-		return 1.0
-
 ## Called when ready
 func _ready() -> void:
-	var test = Test.new()
-
 	ui = UI.create(self)
 
 ## Called to create a label
@@ -44,7 +28,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 	var completed_button_motion: Dictionary = {"ref": null}
 	
 	# Add a panel container
-	var main_panel: UI = ui.add(PanelContainer, "Task ID %s" % task.id, false).prop("modulate", Color.WHITE).animate_rect(10.0)
+	var main_panel: UI = ui.add(PanelContainer, "Task ID %s" % task.id, false).prop("modulate", Color.WHITE).animate_rect(16.0)
 	
 	# Add a hbox inside container
 	var main_panel_hbox: UI = main_panel.add(HBoxContainer)
