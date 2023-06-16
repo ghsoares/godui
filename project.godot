@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Gudui"
+config/name="Godui"
 config/features=PackedStringArray("4.0", "Mobile")
 config/icon="res://icon.svg"
 
