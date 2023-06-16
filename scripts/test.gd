@@ -84,15 +84,15 @@ func render_task(ui: UI, task: Dictionary) -> void:
 				# Another parallel track to animate both axis individually of the scale property
 				motion.parallel(func (motion):
 					motion.prop("scale:x", true).from_current().ease_out(3.0, 0.1)
-					motion.wait(0.1)
+					motion.wait(0.08)
 					motion.prop("scale:y", true).from_current().ease_out(3.0, 0.1)
 					motion.prop("scale:x", true).ease_out(1.5, 0.1)
-					motion.wait(0.1)
+					motion.wait(0.08)
 					motion.prop("scale:y", true).ease_out(1.5, 0.1)
 				)
 
 				# Play 'shake' animation
-				motion.prop("rotation").from_current().shake(deg_to_rad(45.0) * (randf() * 2.0 - 1.0), 0.5, 3.0)
+				motion.prop("rotation").from_current().shake(deg_to_rad(30.0) * (randf() * 2.0 - 1.0), 0.5, 3.0)
 			)
 
 			# Reset scale and rotation
