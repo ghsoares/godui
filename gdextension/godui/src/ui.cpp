@@ -8,10 +8,11 @@
 #include <godot_cpp/classes/gd_script_native_class.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/classes/rendering_server.hpp>
 
 using namespace godot;
 
-void UI::frame_update() {
+void UI::process_frame() {
 	if (repaint) {
 		pre_update();
 		// ui_update(node->get("ui_process"));
@@ -20,6 +21,10 @@ void UI::frame_update() {
 	}
 
 	idle_update(node->get_process_delta_time());
+}
+
+void UI::before_draw() {
+	draw_update(node->get_process_delta_time());
 }
 
 void UI::pre_update() {
@@ -57,6 +62,10 @@ void UI::post_update() {
 			child->value->post_update();
 			if (child->value->deletion) {
 				child->value->remove();
+				if (!child->value->persist) {
+					child->value->del();
+					type->value.children.erase(child->key);
+				}
 			}
 		}
 	}
@@ -92,6 +101,17 @@ void UI::remove() {
 	deletion = false;
 }
 
+void UI::del() {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->del();
+		}
+	}
+
+	node->queue_free();
+	node = nullptr;
+}
+
 void UI::idle_update(float p_delta) {
 	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
 		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
@@ -105,7 +125,43 @@ void UI::idle_update(float p_delta) {
 	}
 }
 
-Ref<UI> UI::add(Object *p_type, const Variant &p_key) {
+void UI::draw_update(float p_delta) {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->draw_update(p_delta);
+		}
+	}
+
+	if (rect_animation_speed > 0.0) {
+		Control *control = Object::cast_to<Control>(node);
+		Rect2 curr = control->get_rect();
+		Transform2D tr = control->get_transform();
+		RID rid = control->get_canvas_item();
+		float t = p_delta * rect_animation_speed;
+		t = t < 0.0 ? 0.0 : (t > 1.0 ? 1.0 : t);
+
+		if (rect_current.size.x < 0.0) {
+			rect_current = curr;
+		}
+
+		rect_current.position += (curr.position - rect_current.position) * t;
+		rect_current.size += (curr.size - rect_current.size) * t;
+
+		if (ABS(rect_current.position.x - curr.position.x) < 0.5) rect_current.position.x = curr.position.x;
+		if (ABS(rect_current.position.y - curr.position.y) < 0.5) rect_current.position.y = curr.position.y;
+		if (ABS(rect_current.size.x - curr.size.x) < 0.5) rect_current.size.x = curr.size.x;
+		if (ABS(rect_current.size.y - curr.size.y) < 0.5) rect_current.size.y = curr.size.y;
+
+		Vector2 delta_pos = rect_current.position - curr.position;
+		Vector2 delta_scale = rect_current.size / curr.size;
+
+		tr *= Transform2D(Vector2(delta_scale.x, 0.0), Vector2(0.0, delta_scale.y), delta_pos);
+
+		RenderingServer::get_singleton()->canvas_item_set_transform(rid, tr);
+	}
+}
+
+Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 	ERR_FAIL_COND_V_MSG(
 		!p_type->has_method("new"),
 		this,
@@ -135,7 +191,10 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key) {
 
 		ref = type->value.children.insert(index, UI::create_ui(node, this));
 		ref->value->index = index;
+		ref->value->deletion = true;
 	}
+
+	ERR_FAIL_COND_V_MSG(!ref->value->deletion, this, "Node already added");
 
 	if (!ref->value->inside) {
 		node->add_child(ref->value->node);
@@ -143,6 +202,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key) {
 	}
 
 	ref->value->deletion = false;
+	ref->value->persist = p_persist;
 
 	node->move_child(ref->value->node, child_idx);
 
@@ -165,6 +225,16 @@ Ref<UI> UI::props(const Dictionary &p_props) {
 		NodePath p = NodePath((String)keys[i - 1]);
 		prop(p, p_props[keys[i - 1]]);
 	}
+
+	return this;
+}
+
+Ref<UI> UI::motion(const Callable &p_motion_callable) {
+	if (node_motion.is_null()) {
+		node_motion.instantiate();
+		node_motion->node = node;
+	}
+	p_motion_callable.call(node_motion);
 
 	return this;
 }
@@ -210,13 +280,13 @@ Node *UI::ref() {
 	return node;
 }
 
-Ref<UI> UI::motion(const Callable &p_motion_callable) {
-	if (node_motion.is_null()) {
-		node_motion.instantiate();
-		node_motion->node = node;
+Ref<UI> UI::animate_rect(float p_speed) {
+	ERR_FAIL_COND_V_MSG(!Object::cast_to<Control>(node), this, "Node must inherit Control");
+	Control *control = Object::cast_to<Control>(node);
+	if (rect_animation_speed <= 0.0 && p_speed > 0.0) {
+		rect_current.size = Vector2(-1.0, -1.0);
 	}
-	p_motion_callable.call(node_motion);
-
+	rect_animation_speed = p_speed;
 	return this;
 }
 
@@ -486,7 +556,8 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 
 	if (p_parent_ui.is_null()) {
 		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), Ref<UI>(), "Target node must have a 'ui_process' function");
-		p_node->get_tree()->connect("process_frame", Callable(ui.ptr(), "_frame_update"));
+		p_node->get_tree()->connect("process_frame", Callable(ui.ptr(), "_process_frame"));
+		RenderingServer::get_singleton()->connect("frame_pre_draw", Callable(ui.ptr(), "_before_draw"));
 	}
 
 	return ui;
@@ -495,16 +566,21 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 void UI::_bind_methods() {
 	ClassDB::bind_static_method("UI", D_METHOD("create", "Node", "parent_ui"), &UI::create_ui, DEFVAL(Ref<UI>()));
 	
-	ClassDB::bind_method(D_METHOD("_frame_update"), &UI::frame_update);
-	ClassDB::bind_method(D_METHOD("add", "type", "key"), &UI::add, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("_process_frame"), &UI::process_frame);
+	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
+	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
 	ClassDB::bind_method(D_METHOD("props", "props"), &UI::props);
+	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);
+	
 	ClassDB::bind_method(D_METHOD("scope", "ui_callable"), &UI::scope);
 	ClassDB::bind_method(D_METHOD("queue_update"), &UI::queue_update);
+	
 	ClassDB::bind_method(D_METHOD("ref"), &UI::ref);
 
-	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
+	ClassDB::bind_method(D_METHOD("animate_rect", "speed"), &UI::animate_rect, DEFVAL(10.0));
+
 	ClassDB::bind_method(D_METHOD("theme_variation", "theme_type"), &UI::theme_variation);
 	
 	ClassDB::bind_method(D_METHOD("shrink_begin"), &UI::shrink_begin);
@@ -549,6 +625,9 @@ UI::UI() {
 	repaint = true;
 	types = UITypeCollection();
 	child_idx = 0;
+
+	rect_current = Rect2();
+	rect_animation_speed = 0.0;
 	node_motion = Ref<MotionRef>();
 }
 

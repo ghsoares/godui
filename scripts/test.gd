@@ -9,8 +9,24 @@ var tasks: Dictionary
 ## Current task id
 var task_id: int = 0
 
+class Test:
+	func foo():
+		print("foo")
+		return self
+	func bar(arg):
+		print("bar: ", arg)
+		return self
+	func foobar():
+		print("foobar")
+		return 0.0
+	func test1():
+		print("test1")
+		return 1.0
+
 ## Called when ready
 func _ready() -> void:
+	var test = Test.new()
+
 	ui = UI.create(self)
 
 ## Called to create a label
@@ -28,7 +44,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 	var completed_button_motion: Dictionary = {"ref": null}
 	
 	# Add a panel container
-	var main_panel: UI = ui.add(PanelContainer).prop("modulate", Color.WHITE)
+	var main_panel: UI = ui.add(PanelContainer, "Task ID %s" % task.id, false).prop("modulate", Color.WHITE).animate_rect(10.0)
 	
 	# Add a hbox inside container
 	var main_panel_hbox: UI = main_panel.add(HBoxContainer)
@@ -79,23 +95,35 @@ func render_task(ui: UI, task: Dictionary) -> void:
 		
 		# Play animation on completed
 		if task.completed:
-			# Pulse to 1.25
-			motion.prop("scale", func (motion):
-				motion.current().ease_out(Vector2(1.25, 1.25), 0.1)
-			)
-			# Play 'shake' animation
-			motion.prop("rotation", func (motion): motion.current().shake(deg_to_rad(25.0), 0.5, 4.0))
+			# Paralelly animate tracks
+			motion.parallel(func (motion):
+				# Another parallel track to animate both axis individually of the scale property
+				motion.parallel(func (motion):
+					motion.prop("scale:x", true).from_current().ease_out(3.0, 0.1)
+					motion.wait(0.1)
+					motion.prop("scale:y", true).from_current().ease_out(3.0, 0.1)
+					motion.prop("scale:x", true).ease_out(1.5, 0.1)
+					motion.wait(0.1)
+					motion.prop("scale:y", true).ease_out(1.5, 0.1)
+				)
 
-			# Scale back to 1.0
-			motion.prop("scale", func (motion): motion.ease_out(Vector2(1.0, 1.0), 0.5))
-		# Play animation on not completed
-		else:
+				# Play 'shake' animation
+				motion.prop("rotation").from_current().shake(deg_to_rad(45.0) * (randf() * 2.0 - 1.0), 0.5, 3.0)
+			)
+
 			# Reset scale and rotation
 			motion.parallel(func (motion):
-				motion.prop("scale", func (motion):
-					motion.current().ease_in_out(Vector2(1.0, 1.0), 0.25)
-				)
-				motion.prop("rotation", func (motion): motion.current().ease_in_out(0.0, 0.25))
+				motion.prop("scale:x").ease_in_out(1.0, 0.25)
+				motion.prop("scale:y").ease_in_out(1.0, 0.25)
+				motion.prop("rotation").ease_in_out(0.0, 0.25)
+			)
+		# Play animation on not completed
+		else:
+			# Animate two properties parallelly
+			motion.parallel(func (motion):
+				# Reset both scale and rotation to zero
+				motion.prop("scale").from_current().ease_in_out(Vector2(1.0, 1.0), 0.25)
+				motion.prop("rotation").from_current().ease_in_out(0.0, 0.25)
 			)
 	)
 
@@ -104,14 +132,12 @@ func render_task(ui: UI, task: Dictionary) -> void:
 
 		# Play animation on removed
 		if task.removed:
-			motion.prop("modulate", func (motion):
-				motion.current().linear(Color.TRANSPARENT, 0.5).callback(func ():
-					# Erase for real now
-					tasks.erase(task.id)
+			motion.prop("modulate").from_current().linear(Color.TRANSPARENT, 0.2).callback(func ():
+				# Erase for real now
+				tasks.erase(task.id)
 
-					# Queue UI update
-					ui.queue_update()
-				)
+				# Queue UI update
+				ui.queue_update()
 			)
 	)
 

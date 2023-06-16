@@ -19,7 +19,7 @@ void MotionRef::clear() {
 	key_time = 0.0;
 	key_duration = 0.0;
 	key_parallel = false;
-	key_relative = false;
+	key_scale = 1.0;
 	loop_enabled = false;
 	property_tracks.clear();
 	callback_track.clear();
@@ -46,7 +46,7 @@ void MotionRef::animate() {
 		const PropertyKeyframe &key1 = track->value.track[idx];
 
 		Variant val;
-		transition_value(key0.value, key1.value, val, key1.ease_type, key1.ease_strength, time - key1.time, key1.duration);
+		transition_value(key0.end_value, key1.value, val, key1.ease_type, key1.ease_strength, time - key1.time, key1.duration);
 	
 		if (track->value.indexed) {
 			node->set_indexed(NodePath(track->key), val);
@@ -142,6 +142,18 @@ Ref<MotionRef> MotionRef::loop(bool p_enabled) {
 	return this;
 }
 
+Ref<MotionRef> MotionRef::scope(const Callable &p_motion_callable) {
+	bool key_parallel = this->key_parallel;
+	float key_time = this->key_time;
+	float key_duration = this->key_duration;
+
+	p_motion_callable.call(this);
+
+	update_substate(key_parallel, key_time, key_duration);
+
+	return this;
+}
+
 Ref<MotionRef> MotionRef::parallel(const Callable &p_motion_callable) {
 	bool key_parallel = this->key_parallel;
 	float key_time = this->key_time;
@@ -157,32 +169,53 @@ Ref<MotionRef> MotionRef::parallel(const Callable &p_motion_callable) {
 	return this;
 }
 
-Ref<MotionRef> MotionRef::relative(const Callable &p_motion_callable) {
-	bool key_relative = this->key_relative;
-
-	this->key_relative = true;
-
-	p_motion_callable.call(this);
-
-	this->key_relative = key_relative;
-
-	return this;
-}
-
-Ref<MotionRef> MotionRef::prop(const String &p_name, const Callable &p_motion_callable) {
+Ref<MotionRef> MotionRef::chain(const Callable &p_motion_callable) {
 	bool key_parallel = this->key_parallel;
 	float key_time = this->key_time;
 	float key_duration = this->key_duration;
-	HashMap<String, PropertyTrack>::Iterator property_track = this->property_track;
-	this->property_track = get_property_track(p_name, false);
+
 	this->key_parallel = false;
 	this->key_duration = 0.0;
 
 	p_motion_callable.call(this);
 
-	this->property_track = property_track;
-
 	update_substate(key_parallel, key_time, key_duration);
+
+	return this;
+}
+
+Ref<MotionRef> MotionRef::scale(float p_scale, const Callable &p_motion_callable) {
+	ERR_FAIL_COND_V_MSG(p_scale <= 0.0, this, "Scale must be greater than zero");
+
+	float key_scale = this->key_scale;
+
+	this->key_scale *= p_scale;
+
+	p_motion_callable.call(this);
+
+	this->key_scale = key_scale;
+
+	return this;
+}
+
+Ref<MotionRef> MotionRef::prop(const String &p_name, bool p_indexed) {
+	// bool key_parallel = this->key_parallel;
+	// float key_time = this->key_time;
+	// float key_duration = this->key_duration;
+
+	// HashMap<String, PropertyTrack>::Iterator property_track = this->property_track;
+	// this->property_track = get_property_track(p_name, false);
+	
+	// this->key_parallel = false;
+	// this->key_duration = 0.0;
+
+	// p_motion_callable.call(this);
+
+	// this->property_track = property_track;
+
+	// update_substate(key_parallel, key_time, key_duration);
+
+	this->property_track = get_property_track(p_name, p_indexed);
 
 	return this;
 }
@@ -192,16 +225,13 @@ Ref<MotionRef> MotionRef::keyframe(Variant p_value, float p_duration, uint8_t p_
 	ERR_FAIL_COND_V_MSG(!property_track, this, "Must call 'prop' first");
 	PropertyTrack &track = property_track->value;
 
-	if (key_relative) {
-		bool valid;
-		Variant::evaluate(Variant::OP_ADD, p_value, track.current_value, p_value, valid);
-		ERR_FAIL_COND_V_MSG(!valid, this, "Couldn't assign keyframe with different value");
-	}
-	track.track.append(PropertyKeyframe(key_time, p_duration, p_value, p_ease_mode, p_ease_strength));
+	p_duration *= key_scale;
 
 	Variant end_val;
 	transition_value(track.current_value, p_value, end_val, p_ease_mode, p_ease_strength, 1.0, 1.0);
 	track.current_value = end_val;
+
+	track.track.append(PropertyKeyframe(key_time, p_duration, p_value, end_val, p_ease_mode, p_ease_strength));
 
 	if (!key_parallel) {
 		key_time += p_duration;
@@ -222,8 +252,8 @@ Ref<MotionRef> MotionRef::callback(const Callable &p_callback_callable) {
 Ref<MotionRef> MotionRef::wait(float p_duration) {
 	ERR_FAIL_COND_V_MSG(p_duration < 0.0, this, "Duration must be greater or equal 0.0");
 
-	key_time += p_duration;
-	key_duration += p_duration;
+	key_time += p_duration * key_scale;
+	key_duration += p_duration * key_scale;
 
 	return this;
 }
@@ -243,20 +273,30 @@ Ref<MotionRef> MotionRef::repeat(int p_times, const Callable &p_motion_callable)
 	return this;
 }
 
-Ref<MotionRef> MotionRef::current() {
-	ERR_FAIL_COND_V_MSG(!property_track, this, "Must call 'prop' first");
+Variant MotionRef::current() {
+	ERR_FAIL_COND_V_MSG(!property_track, Variant(), "Must call 'prop' first");
 
-	return this->keyframe(property_track->value.current_value, 0.0, 0.0, 0.0);
+	return property_track->value.current_value;
 }
 
-Ref<MotionRef> MotionRef::begin() {
-	ERR_FAIL_COND_V_MSG(!property_track, this, "Must call 'prop' first");
+Variant MotionRef::relative(Variant p_delta) {
+	ERR_FAIL_COND_V_MSG(!property_track, Variant(), "Must call 'prop' first");
 
-	return this->keyframe(property_track->value.track[0].value, 0.0, 0.0, 0.0);
+	Variant curr = property_track->value.current_value;
+	bool valid;
+	Variant::evaluate(Variant::OP_ADD, curr, p_delta, curr, valid);
+
+	ERR_FAIL_COND_V_MSG(!valid, Variant(), "Invalid relative value");
+
+	return curr;
 }
 
 Ref<MotionRef> MotionRef::frame(Variant p_value) {
 	return this->keyframe(p_value, 0.0, 0, 0.0);
+}
+
+Ref<MotionRef> MotionRef::from_current() {
+	return this->frame(current());
 }
 
 Ref<MotionRef> MotionRef::constant(Variant p_value, float p_duration) {
@@ -313,17 +353,21 @@ void MotionRef::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("reset"), &MotionRef::reset);
 	ClassDB::bind_method(D_METHOD("loop", "enabled"), &MotionRef::loop);
+	ClassDB::bind_method(D_METHOD("scope", "motion_callable"), &MotionRef::scope);
 	ClassDB::bind_method(D_METHOD("parallel", "motion_callable"), &MotionRef::parallel);
-	ClassDB::bind_method(D_METHOD("relative", "motion_callable"), &MotionRef::relative);
-	ClassDB::bind_method(D_METHOD("prop", "name", "motion_callable"), &MotionRef::prop);
+	ClassDB::bind_method(D_METHOD("chain", "motion_callable"), &MotionRef::chain);
+	ClassDB::bind_method(D_METHOD("scale", "scale", "motion_callable"), &MotionRef::scale);
+	ClassDB::bind_method(D_METHOD("prop", "name", "indexed"), &MotionRef::prop, DEFVAL(false));
 	// ClassDB::bind_method(D_METHOD("keyframe", "value", "duration", "ease_mode", "ease_strength"), &MotionRef::keyframe);
 	ClassDB::bind_method(D_METHOD("callback", "callback_callable"), &MotionRef::callback);
 	ClassDB::bind_method(D_METHOD("wait", "duration"), &MotionRef::wait);
 	ClassDB::bind_method(D_METHOD("repeat", "times", "motion_callable"), &MotionRef::repeat);
 
 	ClassDB::bind_method(D_METHOD("current"), &MotionRef::current);
-	ClassDB::bind_method(D_METHOD("begin"), &MotionRef::begin);
+	ClassDB::bind_method(D_METHOD("relative", "delta"), &MotionRef::relative);
+
 	ClassDB::bind_method(D_METHOD("frame", "value"), &MotionRef::frame);
+	ClassDB::bind_method(D_METHOD("from_current"), &MotionRef::from_current);
 	ClassDB::bind_method(D_METHOD("constant", "to_value", "duration"), &MotionRef::constant);
 	ClassDB::bind_method(D_METHOD("linear", "to_value", "duration"), &MotionRef::linear);
 	ClassDB::bind_method(D_METHOD("ease_in", "to_value", "duration", "strength"), &MotionRef::ease_in, DEFVAL(3.0));
@@ -346,6 +390,7 @@ MotionRef::MotionRef() {
 	key_time = 0.0;
 	key_duration = 0.0;
 	key_parallel = 0.0;
+	key_scale = 0.0;
 	property_tracks = HashMap<String, PropertyTrack>();
 	property_track = property_tracks.end();
 	callback_track = Vector<CallbackKeyframe>();

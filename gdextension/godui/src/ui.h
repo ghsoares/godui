@@ -37,11 +37,15 @@ class UI : public RefCounted {
 	String index;
 	Node *node;
 	HashMap<String, SignalInfo> signals;
+	bool persist;
 	bool deletion;
 	bool inside;
 	bool repaint;
 	UITypeCollection types;
 	uint64_t child_idx;
+
+	Rect2 rect_current;
+	float rect_animation_speed;
 	Ref<MotionRef> node_motion;
 
 protected:
@@ -51,25 +55,28 @@ protected:
 	void ui_update(const Callable &p_ui_callable);
 	void post_update();
 	void remove();
+	void del();
 	void idle_update(float p_delta);
+	void draw_update(float p_delta);
 
 	bool extract_anchor_unit(const char *p_unit, float &p_anchor_pos, float &p_anchor_off);
 public:
-	void frame_update();
+	void process_frame();
+	void before_draw();
 
-	Ref<UI> add(Object *p_type, const Variant &p_key);
+	Ref<UI> add(Object *p_type, const Variant &p_key, bool p_persist);
 
 	Ref<UI> prop(const NodePath &p_name, const Variant &p_val);
 	Ref<UI> props(const Dictionary &p_props);
-
 	Ref<UI> motion(const Callable &p_motion_callable);
-
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
 
 	Ref<UI> scope(const Callable &p_ui_callable);
 	Ref<UI> queue_update();
 
 	Node *ref();
+
+	Ref<UI> animate_rect(float p_speed);
 
 	Ref<UI> theme_variation(const String &p_theme_type);
 

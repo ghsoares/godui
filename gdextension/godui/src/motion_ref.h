@@ -20,15 +20,16 @@ class MotionRef : public RefCounted {
 		float time;
 		float duration;
 		Variant value;
+		Variant end_value;
 		uint8_t ease_type;
 		float ease_strength;
 
 		inline PropertyKeyframe() {}
 
 		inline PropertyKeyframe(
-			float p_time, float p_duration, Variant p_value,
+			float p_time, float p_duration, Variant p_value, Variant p_end_value,
 			uint8_t p_ease_type, float p_ease_strength
-		): time(p_time), duration(p_duration), value(p_value),
+		): time(p_time), duration(p_duration), value(p_value), end_value(p_end_value),
 		ease_type(p_ease_type), ease_strength(p_ease_strength) {}
 	};
 
@@ -60,8 +61,8 @@ class MotionRef : public RefCounted {
 	
 	float key_time;
 	float key_duration;
+	float key_scale;
 	bool key_parallel;
-	bool key_relative;
 
 	HashMap<String, PropertyTrack> property_tracks;
 	HashMap<String, PropertyTrack>::Iterator property_track;
@@ -85,17 +86,21 @@ public:
 	inline float get_duration() const { return key_duration; }
 
 	Ref<MotionRef> loop(bool p_enabled);
+	Ref<MotionRef> scope(const Callable &p_motion_callable);
 	Ref<MotionRef> parallel(const Callable &p_motion_callable);
-	Ref<MotionRef> relative(const Callable &p_motion_callable);
-	Ref<MotionRef> prop(const String &p_name, const Callable &p_motion_callable);
+	Ref<MotionRef> chain(const Callable &p_motion_callable);
+	Ref<MotionRef> scale(float p_scale, const Callable &p_motion_callable);
+	Ref<MotionRef> prop(const String &p_name, bool p_indexed);
 	Ref<MotionRef> keyframe(Variant p_value, float p_duration, uint8_t p_ease_mode, float p_ease_strength);
 	Ref<MotionRef> callback(const Callable &p_callback_callable);
 	Ref<MotionRef> wait(float p_duration);
 	Ref<MotionRef> repeat(int p_times, const Callable &p_motion_callable);
 
-	Ref<MotionRef> current();
-	Ref<MotionRef> begin();
+	Variant current();
+	Variant relative(Variant p_delta);
+
 	Ref<MotionRef> frame(Variant p_value);
+	Ref<MotionRef> from_current();
 	Ref<MotionRef> constant(Variant p_to_value, float p_duration);
 	Ref<MotionRef> linear(Variant p_to_value, float p_duration);
 
