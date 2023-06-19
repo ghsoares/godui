@@ -120,7 +120,7 @@ func render_task(ui: UI, task: Dictionary) -> void:
 					)
 
 					# Play 'shake' animation
-					motion.prop("rotation").from_current().shake(deg_to_rad(30.0) * (randf() * 2.0 - 1.0), 0.5, 3.0)
+					motion.prop("rotation").from_current().pulse(deg_to_rad(45.0) * (randf() * 2.0 - 1.0), 0.25)
 				)
 
 				# Reset scale and rotation
