@@ -5,11 +5,18 @@ extends Control
 var ui: UI
 var ui_ref: WeakRef
 
+## The ms label
+var ms_label: Label
+
 ## The task list UI reference
 var task_list_ui: UI
 
 ## Current tasks
 var tasks: Dictionary
+
+## Current MS
+var ms: float = 0.0
+var _ms: float = 0.0
 
 ## Current task id
 var task_id: int = 0
@@ -24,8 +31,19 @@ func _notification(what: int) -> void:
 
 			get_script().changed.connect(on_script_changed)
 			script_changed.connect(on_script_changed)
+		NOTIFICATION_PROCESS:
+			if _ms > ms:
+				ms = _ms
+			else:
+				ms += (_ms - ms) * clamp(get_process_delta_time() * 4.0, 0.0, 1.0)
+			if ms_label: 
+				ms_label.text = "%.2f ms" % ms
 
-	if ui: ui.notification(what)
+	if ui: 
+		var start: int = Time.get_ticks_usec()
+		ui.notification(what)
+		var elapsed: int = Time.get_ticks_usec() - start
+		_ms = elapsed * 0.001
 
 func on_script_changed() -> void:
 	print("Changed!")
@@ -191,6 +209,9 @@ func new_task() -> void:
 func ui_process(ui: UI) -> void:
 	# The main panel with vbox
 	var main_ui: UI = ui.add(PanelContainer).full_rect().theme_variation("BaseContainer").add(VBoxContainer)
+
+	# Add a simple ms label to main panel
+	ms_label = label(main_ui, "0.00 ms").ref()
 
 	# Add a simple label to main panel
 	label(main_ui, "Tasks")
