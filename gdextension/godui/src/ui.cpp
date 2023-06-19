@@ -9,28 +9,59 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
+#include <godot_cpp/classes/engine.hpp>
 
 using namespace godot;
 
-void UI::process_frame() {
-	if (repaint) {
-		pre_update();
-		// ui_update(node->get("ui_process"));
-		node->call("ui_process", this);
-		post_update();
+void UI::_notification(int p_what) {
+	switch (p_what) {
+		case Node::NOTIFICATION_ENTER_TREE: {
+			RenderingServer::get_singleton()->connect("frame_pre_draw", Callable(this, "_before_draw"));
+		} break;
+		case Node::NOTIFICATION_EXIT_TREE: {
+			RenderingServer::get_singleton()->disconnect("frame_pre_draw", Callable(this, "_before_draw"));
+		} break;
+		case Node::NOTIFICATION_PROCESS: {
+			check_update();
+			idle_update(node->get_process_delta_time());
+		} break;
 	}
-
-	idle_update(node->get_process_delta_time());
 }
 
 void UI::before_draw() {
 	draw_update(node->get_process_delta_time());
 }
 
+void UI::clear_children() {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->clear_children();
+			if (child->value->inside)
+				node->remove_child(child->value->node);
+			child->value->node->queue_free();
+		}
+	}
+}
+
+void UI::check_update() {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->check_update();
+		}
+	}
+
+	if (repaint) {
+		pre_update();
+		ui_update();
+		post_update();
+	}
+}
+
 void UI::pre_update() {
 	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
 		type->value.idx = 0;
 		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			if (child->value->inside) child->value->deletion = true;
 			child->value->pre_update();
 		}
 	}
@@ -48,12 +79,17 @@ void UI::pre_update() {
 	node->set_block_signals(true);
 
 	child_idx = 0;
-	if (root.ptr() == this) repaint = false;
-	if (inside) deletion = true;
 }
 
-void UI::ui_update(const Callable &p_ui_callable) {
-	p_ui_callable.call(this);
+void UI::ui_update() {
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		type->value.idx = 0;
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			child->value->ui_update();
+		}
+	}
+	repaint = false;
+	if (!update_callable.is_null()) update_callable.call(this);
 }
 
 void UI::post_update() {
@@ -105,6 +141,7 @@ void UI::del() {
 	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
 		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
 			child->value->del();
+			type->value.children.erase(child->key);
 		}
 	}
 
@@ -192,28 +229,39 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 		ref = type->value.children.insert(index, UI::create_ui(node, this));
 		ref->value->index = index;
 		ref->value->deletion = true;
+		ref->value->inside = false;
 	}
 
 	ERR_FAIL_COND_V_MSG(!ref->value->deletion, this, "Node already added");
+
+	ref->value->deletion = false;
+	ref->value->persist = p_persist;
+	ref->value->repaint = false;
 
 	if (!ref->value->inside) {
 		node->add_child(ref->value->node);
 		ref->value->inside = true;
 	}
 
-	ref->value->deletion = false;
-	ref->value->persist = p_persist;
-
 	node->move_child(ref->value->node, child_idx);
-
 	child_idx++;
 
 	return ref->value;
 }
 
-Ref<UI> UI::prop(const NodePath &p_name, const Variant &p_val) {
-	if (node->get_indexed(p_name) != p_val) {
-		node->set_indexed(p_name, p_val);
+Ref<UI> UI::show(const Callable &p_ui_callable) {
+	update_callable = p_ui_callable;
+	repaint = true;
+	
+	check_update();
+
+	return this;
+}
+
+Ref<UI> UI::prop(const String &p_name, const Variant &p_val) {
+	NodePath name = NodePath(p_name);
+	if (node->get_indexed(name) != p_val) {
+		node->set_indexed(name, p_val);
 	}
 
 	return this;
@@ -222,8 +270,7 @@ Ref<UI> UI::prop(const NodePath &p_name, const Variant &p_val) {
 Ref<UI> UI::props(const Dictionary &p_props) {
 	Array keys = p_props.keys();
 	for (int64_t i = keys.size(); i > 0; i--) {
-		NodePath p = NodePath((String)keys[i - 1]);
-		prop(p, p_props[keys[i - 1]]);
+		prop(keys[i - 1], p_props[keys[i - 1]]);
 	}
 
 	return this;
@@ -233,6 +280,7 @@ Ref<UI> UI::motion(const Callable &p_motion_callable) {
 	if (node_motion.is_null()) {
 		node_motion.instantiate();
 		node_motion->node = node;
+		node_motion->clear();
 	}
 	p_motion_callable.call(node_motion);
 
@@ -265,14 +313,19 @@ Ref<UI> UI::event(const String &p_signal_name, const Callable &p_target) {
 	return this;
 }
 
-Ref<UI> UI::scope(const Callable &p_ui_callable) {
-	ui_update(p_ui_callable);
-
+Ref<UI> UI::queue_update() {
+	if (update_callable.is_null()) {
+		UtilityFunctions::push_warning("When using 'queue_update' call 'show' on the respective UI or else it's children won't be updated and will disappear");
+	}
+	repaint = true;
 	return this;
 }
 
-Ref<UI> UI::queue_update() {
-	root->repaint = true;
+Ref<UI> UI::root_queue_update() {
+	if (root)
+		root->repaint = true;
+	else
+		repaint = true;
 	return this;
 }
 
@@ -541,23 +594,23 @@ Ref<UI> UI::bottom_margin(Variant p_unit) {
 
 Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 	Ref<UI> ui;
-	Ref<UI> root = p_parent_ui;
+	UI *root = (UI *)p_parent_ui.ptr();
 	ui.instantiate();
 
-	if (root.is_valid()) {
-		while (root->parent.is_valid()) {
-			root = root->parent;
-		}
+	if (root) {
+		while (root->parent) root = root->parent;
 	}
 
-	ui->root = root.is_valid() ? root : ui;
-	ui->parent = p_parent_ui;
+	ui->root = root;
+	ui->parent = (UI *)p_parent_ui.ptr();
 	ui->node = p_node;
 
 	if (p_parent_ui.is_null()) {
 		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), Ref<UI>(), "Target node must have a 'ui_process' function");
-		p_node->get_tree()->connect("process_frame", Callable(ui.ptr(), "_process_frame"));
-		RenderingServer::get_singleton()->connect("frame_pre_draw", Callable(ui.ptr(), "_before_draw"));
+		ui->update_callable = p_node->get("ui_process");
+
+		if (p_node->is_inside_tree())
+			ui->notification(Node::NOTIFICATION_ENTER_TREE);
 	}
 
 	return ui;
@@ -566,16 +619,17 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 void UI::_bind_methods() {
 	ClassDB::bind_static_method("UI", D_METHOD("create", "Node", "parent_ui"), &UI::create_ui, DEFVAL(Ref<UI>()));
 	
-	ClassDB::bind_method(D_METHOD("_process_frame"), &UI::process_frame);
 	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
-	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
+	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("show", "ui_callable"), &UI::show);
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
 	ClassDB::bind_method(D_METHOD("props", "props"), &UI::props);
 	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);
 	
-	ClassDB::bind_method(D_METHOD("scope", "ui_callable"), &UI::scope);
 	ClassDB::bind_method(D_METHOD("queue_update"), &UI::queue_update);
+	ClassDB::bind_method(D_METHOD("root_queue_update"), &UI::root_queue_update);
 	
 	ClassDB::bind_method(D_METHOD("ref"), &UI::ref);
 
@@ -615,8 +669,8 @@ void UI::_bind_methods() {
 }
 
 UI::UI() {
-	root = Ref<UI>();
-	parent = Ref<UI>();
+	root = nullptr;
+	parent = nullptr;
 	index = "";
 	node = nullptr;
 	signals = HashMap<String, SignalInfo>();
@@ -633,6 +687,15 @@ UI::UI() {
 
 UI::~UI() {
 	node = nullptr;
+
+	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
+		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
+			if (!child->value->inside) {
+				child->value->del();
+			}
+		}
+	}
+
 	signals.clear();
 	types.clear();
 }

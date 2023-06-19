@@ -32,8 +32,8 @@ class UI : public RefCounted {
 	using UITypeCollection = HashMap<uint64_t, UINodeCollection>;
 	using UIChildrenCollection = HashMap<String, Ref<UI>>;
 
-	Ref<UI> root;
-	Ref<UI> parent;
+	UI *root;
+	UI *parent;
 	String index;
 	Node *node;
 	HashMap<String, SignalInfo> signals;
@@ -44,6 +44,8 @@ class UI : public RefCounted {
 	UITypeCollection types;
 	uint64_t child_idx;
 
+	Callable update_callable;
+
 	Rect2 rect_current;
 	float rect_animation_speed;
 	Ref<MotionRef> node_motion;
@@ -51,9 +53,13 @@ class UI : public RefCounted {
 protected:
 	static void _bind_methods();
 
+	void _notification(int p_what);
+
+	void check_update();
 	void pre_update();
-	void ui_update(const Callable &p_ui_callable);
+	void ui_update();
 	void post_update();
+	
 	void remove();
 	void del();
 	void idle_update(float p_delta);
@@ -61,22 +67,23 @@ protected:
 
 	bool extract_anchor_unit(const char *p_unit, float &p_anchor_pos, float &p_anchor_off);
 public:
-	void process_frame();
 	void before_draw();
+	void clear_children();
 
-	Ref<UI> add(Object *p_type, const Variant &p_key, bool p_persist);
+	Ref<UI> add(Object *p_type, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> show(const Callable &p_ui_callable);
 
-	Ref<UI> prop(const NodePath &p_name, const Variant &p_val);
+	Ref<UI> prop(const String &p_name, const Variant &p_val);
 	Ref<UI> props(const Dictionary &p_props);
 	Ref<UI> motion(const Callable &p_motion_callable);
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
 
-	Ref<UI> scope(const Callable &p_ui_callable);
 	Ref<UI> queue_update();
+	Ref<UI> root_queue_update();
 
 	Node *ref();
 
-	Ref<UI> animate_rect(float p_speed);
+	Ref<UI> animate_rect(float p_speed = 10.0);
 
 	Ref<UI> theme_variation(const String &p_theme_type);
 
@@ -112,7 +119,7 @@ public:
 	Ref<UI> right_margin(Variant unit);
 	Ref<UI> bottom_margin(Variant unit);
 
-	static Ref<UI> create_ui(Node *p_node, const Ref<UI> &p_parent_ui);
+	static Ref<UI> create_ui(Node *p_node, const Ref<UI> &p_parent_ui = Ref<UI>());
 
 	UI();
 	~UI();
