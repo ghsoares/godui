@@ -45,6 +45,8 @@ void MotionRef::animate() {
 		const PropertyKeyframe &key0 = track->value.track[prev_idx];
 		const PropertyKeyframe &key1 = track->value.track[idx];
 
+		// UtilityFunctions::print(vformat("%s, %s, %s, %s, %s, %s", key0.end_value, key1.value, key1.ease_type, key1.ease_strength, time - key1.time, key1.duration));
+
 		Variant val;
 		transition_value(key0.end_value, key1.value, val, key1.ease_type, key1.ease_strength, time - key1.time, key1.duration);
 	
