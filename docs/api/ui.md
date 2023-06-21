@@ -25,6 +25,7 @@ Base class for user interfaces, wraps a node and provide utility functions to mo
 | returns | method |
 | --- | --- |
 | void | [clear_children](#clear_children) () |
+| [Node] | [ref](#ref) () const |
 | [UI] | [add](#add) ([Object] type, [Variant] key = null, [bool] persist = false) |
 | [UI] | [show](#show) ([Callable] ui_callable) |
 | [UI] | [prop](#prop) ([String] name, [Variant] value) |
@@ -33,7 +34,6 @@ Base class for user interfaces, wraps a node and provide utility functions to mo
 | [UI] | [event](#event) ([String] signal_name, [Callable] target) |
 | [UI] | [queue_update](#queue_update) () |
 | [UI] | [root_queue_update](#root_queue_update) () |
-| [Node] | [ref](#ref) () const |
 | [UI] | [animate_rect](#animate_rect) ([float] speed = 10.0) |
 | [UI] | [theme_variation](#theme_variation) ([String] theme_type) |
 | [UI] | [shrink_begin](#shrink_begin) () |
@@ -70,6 +70,11 @@ Base class for user interfaces, wraps a node and provide utility functions to mo
 **Signature**: **void clear_children()**
 
 Clears all the children and remove the respective nodes from the scene.
+
+### ref
+**Signature**: **[UI] ref () const**
+
+Returns the internal [Node] reference.
 
 ### add
 **Signature**: **[UI] add ([Object] type, [Variant] key = null, [bool] persist = false)**
@@ -114,11 +119,6 @@ Requests this UI to update next frame.
 **Signature**: **[UI] root_queue_update ()**
 
 Requests this UI's root to update next frame.
-
-### ref
-**Signature**: **[UI] ref () const**
-
-Returns the internal [Node] reference.
 
 ### animate_rect
 **Signature**: **[UI] animate_rect ([float] speed = 10.0)**
