@@ -66,6 +66,7 @@ protected:
 	void draw_update(float p_delta);
 
 	bool extract_anchor_unit(const char *p_unit, float &p_anchor_pos, float &p_anchor_off);
+
 public:
 	void before_draw();
 	void clear_children();
@@ -81,7 +82,7 @@ public:
 	Ref<UI> queue_update();
 	Ref<UI> root_queue_update();
 
-	Node *ref();
+	Node *ref() const;
 
 	Ref<UI> animate_rect(float p_speed = 10.0);
 
@@ -119,7 +120,8 @@ public:
 	Ref<UI> right_margin(Variant unit);
 	Ref<UI> bottom_margin(Variant unit);
 
-	static Ref<UI> create_ui(Node *p_node, const Ref<UI> &p_parent_ui = Ref<UI>());
+	static Ref<UI> create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui);
+	static Ref<UI> create_ui(Node *p_node);
 
 	UI();
 	~UI();

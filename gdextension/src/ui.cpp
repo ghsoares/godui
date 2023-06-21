@@ -226,7 +226,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 		ERR_FAIL_COND_V_MSG(node == nullptr, Ref<UI>(), "Type must return a Node");
 		node->set_name(vformat("%s:%d", node->get_class(), child_idx + 1));
 
-		ref = type->value.children.insert(index, UI::create_ui(node, this));
+		ref = type->value.children.insert(index, UI::create_ui_parented(node, this));
 		ref->value->index = index;
 		ref->value->deletion = true;
 		ref->value->inside = false;
@@ -329,7 +329,7 @@ Ref<UI> UI::root_queue_update() {
 	return this;
 }
 
-Node *UI::ref() {
+Node *UI::ref() const {
 	return node;
 }
 
@@ -592,7 +592,7 @@ Ref<UI> UI::bottom_margin(Variant p_unit) {
 	return this;
 }
 
-Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
+Ref<UI> UI::create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui) {
 	Ref<UI> ui;
 	UI *root = (UI *)p_parent_ui.ptr();
 	ui.instantiate();
@@ -616,8 +616,12 @@ Ref<UI> UI::create_ui(Node *p_node, const Ref<UI> &p_parent_ui) {
 	return ui;
 }
 
+Ref<UI> UI::create_ui(Node *p_node) {
+	return create_ui_parented(p_node, Ref<UI>());
+}
+
 void UI::_bind_methods() {
-	ClassDB::bind_static_method("UI", D_METHOD("create", "Node", "parent_ui"), &UI::create_ui, DEFVAL(Ref<UI>()));
+	ClassDB::bind_static_method("UI", D_METHOD("create", "Node"), &UI::create_ui, DEFVAL(Ref<UI>()));
 	
 	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
 	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
