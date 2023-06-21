@@ -2,7 +2,7 @@
 import os
 import sys
 
-env = SConscript("../godot-cpp/SConstruct")
+env = SConscript("godot-cpp/SConstruct")
 
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -13,10 +13,10 @@ env = SConscript("../godot-cpp/SConstruct")
 # - LINKFLAGS are for linking flags
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=["src/", "src/nodes/", "src/gizmos/", "src/util/"])
-sources = Glob("src/*.cpp") + Glob("src/nodes/*.cpp") + Glob("src/gizmos/*.cpp") + Glob("src/util/*.cpp")
-module_name = "physics_spatial_2d"
-bin_folder = "../../addons/physics_spatial_2d/bin"
+env.Append(CPPPATH=["src/"])
+sources = Glob("src/*.cpp")
+module_name = "godui"
+bin_folder = "../addons/{}/bin".format(module_name)
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(

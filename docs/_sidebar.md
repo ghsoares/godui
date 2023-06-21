@@ -1,0 +1,4 @@
+- Getting started
+  - [Quick start](quickstart.md)
+- Contributing
+  - [Compiling](compiling.md)
