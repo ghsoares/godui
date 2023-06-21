@@ -1,21 +1,26 @@
-# UI
-
-**Inherits** [RefCounted](https://docs.godotengine.org/en/stable/classes/class_refcounted.html)
-
-> Base class for user interfaces, wraps a node and provide utility functions to modify it. The majority of the functions return the same UI reference to be able to chain functions.
-
-## Methods
+<!-- Links to some types -->
 
 [Variant]: https://docs.godotengine.org/en/stable/classes/class_variant.html
 [bool]: https://docs.godotengine.org/en/stable/classes/class_bool.html
 [float]: https://docs.godotengine.org/en/stable/classes/class_float.html
 [Object]: https://docs.godotengine.org/en/stable/classes/class_object.html
+[RefCounted]: https://docs.godotengine.org/en/stable/classes/class_refcounted.html
 [String]: https://docs.godotengine.org/en/stable/classes/class_string.html
 [Callable]: https://docs.godotengine.org/en/stable/classes/class_callable.html
 [Dictionary]: https://docs.godotengine.org/en/stable/classes/class_dictionary.html
 [Node]: https://docs.godotengine.org/en/stable/classes/class_node.html
 [Control]: https://docs.godotengine.org/en/stable/classes/class_control.html
 [UI]: api/ui.md
+
+# UI
+
+**Inherits** [RefCounted] < [Object]
+
+## Description
+
+Base class for user interfaces, wraps a node and provide utility functions to modify it. The majority of the functions return the same UI reference to be able to chain functions.
+
+## Methods
 
 | returns | method |
 | --- | --- |

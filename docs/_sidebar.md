@@ -2,3 +2,5 @@
   - [Quick start](quickstart.md)
 - Contributing
   - [Compiling](compiling.md)
+- API
+  - [UI](api/ui.md)
