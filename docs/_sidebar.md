@@ -1,5 +1,5 @@
 - Getting started
-  - [Quick start](getting_started/quickstart.md)
+  - [Quick start](guide/quickstart.md)
 - Contributing
   - [Compiling](contributing/compiling.md)
 - API

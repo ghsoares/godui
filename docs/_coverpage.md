@@ -10,4 +10,4 @@
 - React to events easily
 
 [GitHub](https://github.com/ghsoares/godui)
-[Get Started](#docsify)
+[Get Started](guide/quickstart.md)
