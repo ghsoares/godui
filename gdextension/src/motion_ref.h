@@ -90,7 +90,7 @@ public:
 	Ref<MotionRef> parallel(const Callable &p_motion_callable);
 	Ref<MotionRef> chain(const Callable &p_motion_callable);
 	Ref<MotionRef> scale(float p_scale, const Callable &p_motion_callable);
-	Ref<MotionRef> prop(const String &p_name, bool p_indexed);
+	Ref<MotionRef> prop(const String &p_name, bool p_indexed = false);
 	Ref<MotionRef> keyframe(Variant p_value, float p_duration, uint8_t p_ease_mode, float p_ease_strength);
 	Ref<MotionRef> callback(const Callable &p_callback_callable);
 	Ref<MotionRef> wait(float p_duration);

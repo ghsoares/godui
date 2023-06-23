@@ -4,3 +4,4 @@
   - [Compiling](contributing/compiling.md)
 - API
   - [UI](api/ui.md)
+  - [MotionRef](api/motion_ref.md)
