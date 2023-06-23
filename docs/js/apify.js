@@ -26,15 +26,17 @@ const markdownType = (type) => {
 	var apifyPlugin = function (hook, vm) {
 		hook.beforeEach(function (markdown, next) {
 			let parseAPI = false;
+			
 			markdown = markdown.replace(/\[ParseClassAPI\]/, () => {
 				parseAPI = true;
 				return "";
 			});
 
+			markdown = markdown.replace(/\[ClassReference\]/g, () => {
+				return Object.entries(TYPE_REFERENCE).map(([name, url]) => `[${name}]: ${url}`).join("\n");
+			});
+
 			if (parseAPI) {
-				markdown = markdown.replace(/\[ClassReference\]/g, () => {
-					return Object.entries(TYPE_REFERENCE).map(([name, url]) => `[${name}]: ${url}`).join("\n");
-				});
 	
 				let methods = [];
 	

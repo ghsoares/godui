@@ -20,6 +20,6 @@ The Motion system allows you to easily define custom animations to interface ins
 
 ### Compatibility
 
-As Godui is like a wrapper to easily modify the scene tree of a interface, it's 100% compatible with all Godot's built-in types and custom classes, including Control and non-Control nodes, while focusing on more utilities for Controls, it's completely possible to add other node types to the interface.
+As Godui behaves as a wrapper to easily modify the scene tree of a interface, it's 100% compatible with all Godot's built-in types and custom classes, including Control and non-Control nodes, while focusing on more utilities for Controls, it's completely possible to add other node types to the interface.
 
 
