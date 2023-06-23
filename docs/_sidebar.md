@@ -1,6 +1,6 @@
 - Getting started
-  - [Quick start](quickstart.md)
+  - [Quick start](getting_started/quickstart.md)
 - Contributing
-  - [Compiling](compiling.md)
+  - [Compiling](contributing/compiling.md)
 - API
   - [UI](api/ui.md)

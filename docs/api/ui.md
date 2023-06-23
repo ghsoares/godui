@@ -1,16 +1,4 @@
-<!-- Links to some types -->
-
-[Variant]: https://docs.godotengine.org/en/stable/classes/class_variant.html
-[bool]: https://docs.godotengine.org/en/stable/classes/class_bool.html
-[float]: https://docs.godotengine.org/en/stable/classes/class_float.html
-[Object]: https://docs.godotengine.org/en/stable/classes/class_object.html
-[RefCounted]: https://docs.godotengine.org/en/stable/classes/class_refcounted.html
-[String]: https://docs.godotengine.org/en/stable/classes/class_string.html
-[Callable]: https://docs.godotengine.org/en/stable/classes/class_callable.html
-[Dictionary]: https://docs.godotengine.org/en/stable/classes/class_dictionary.html
-[Node]: https://docs.godotengine.org/en/stable/classes/class_node.html
-[Control]: https://docs.godotengine.org/en/stable/classes/class_control.html
-[UI]: api/ui.md
+[class_reference]
 
 # UI
 
@@ -229,43 +217,43 @@ Sets [Control]'s `anchor_*` and `offset_*` so that the Control's rect takes the 
 **Signature**: **[UI] margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_*` and `offset_*` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### horizontal_margin
 **Signature**: **[UI] horizontal_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_left`, `anchor_right`, `offset_left` and `offset_right` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### vertical_margin
 **Signature**: **[UI] vertical_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_top`, `anchor_bottom`, `offset_top` and `offset_bottom` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### left_margin
 **Signature**: **[UI] left_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_left` and `offset_left` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### top_margin
 **Signature**: **[UI] top_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_top` and `offset_top` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### right_margin
 **Signature**: **[UI] right_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_right` and `offset_right` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### bottom_margin
 **Signature**: **[UI] bottom_margin ([Variant] unit)**
 
 Sets [Control]'s `anchor_bottom` and `offset_bottom` so that the Control's rect has a margin relative to parent.
-`unit` can be of type [int] and [float] in pixels and [String] in pixels format: `"64px"` or relative format: `"5%"`
+`unit` can be of type [int] or [float] for pixels, or [String] in pixels format: `"64px"` or relative format: `"5%"`
 
 ### create
 **Signature**: **[UI] create ([Node] node) static**
