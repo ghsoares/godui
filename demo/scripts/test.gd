@@ -1,237 +1,168 @@
-@tool
 extends Control
 
 ## The UI reference
-var ui: UI
-var ui_ref: WeakRef
+var ui: UI = null
 
-## The ms label
-var ms_label: Label
+## An dictionary storing currently added tasks
+var tasks: Dictionary = {}
 
-## The task list UI reference
-var task_list_ui: UI
-
-## Current tasks
-var tasks: Dictionary
-
-## Current MS
-var ms: float = 0.0
-var _ms: float = 0.0
-
-## Current task id
+## An counter for the tasks's ids, used for indexing later
 var task_id: int = 0
+
+## Called when the node is ready
+func _ready() -> void:
+	# Create the UI reference, then bind it to self
+	ui = UI.create(self)
+
+	# Enable processing interface every frame
+	set_process(true)
 
 ## Called when receiving a notification
 func _notification(what: int) -> void:
-	match what:
-		NOTIFICATION_READY:
-			ui = UI.create(self)
-			ui_ref = weakref(ui)
-			set_process(true)
+	# Notify the interface from the Node's notification
+	if ui: ui.notification(what)
 
-			get_script().changed.connect(on_script_changed)
-			script_changed.connect(on_script_changed)
-		NOTIFICATION_PROCESS:
-			if _ms > ms:
-				ms = _ms
-			else:
-				ms += (_ms - ms) * clamp(get_process_delta_time() * 4.0, 0.0, 1.0)
-			if ms_label: 
-				ms_label.text = "%.2f ms" % ms
+## Creates a single task
+func task_create() -> void:
+	# Create a dictioary describing the task name, id and if it's completed
+	var task: Dictionary = {
+		"name": "New task",
+		"id": task_id,
+		"completed": false
+	}
 
-	if ui: 
-		var start: int = Time.get_ticks_usec()
-		ui.notification(what)
-		var elapsed: int = Time.get_ticks_usec() - start
-		_ms = elapsed * 0.001
-
-func on_script_changed() -> void:
-	print("Changed!")
-	pass
-
-## Called to create a label
-func label(ui: UI, text: String) -> UI:
-	return ui.add(Label).prop("text", text)
-
-## Called to create a button
-func button(ui: UI, text: String) -> UI:
-	return ui.add(Button).prop("text", text)
-
-## Renders a single task
-func render_task(ui: UI, task: Dictionary) -> void:
-	# Add a panel container
-	ui.add(PanelContainer, "Task ID %s" % task.id).show(func (ui):
-		# The panel motion reference
-		var panel_motion: Dictionary = {"ref": null}
-
-		# The motion reference for the completed button
-		var completed_button_motion: Dictionary = {"ref": null}
-
-		# Grab the reference to the panel container
-		var panel_ui: UI = ui
-	
-		# Set base color to white
-		ui.prop("modulate", Color.WHITE)
-
-		# Animate rect with 16 as speed
-		ui.animate_rect(24.0)
-
-		# Motion to animate and fade to invisible
-		ui.motion(func (motion):
-			# Set panel motion reference
-			panel_motion.ref = motion
-
-			# Play animation on removed
-			if task.removed:
-				# Fade to invisible
-				motion.prop("modulate").from_current().linear(Color.TRANSPARENT, 0.2).callback(func ():
-					# Erase for real now
-					tasks.erase(task.id)
-
-					# Queue task list UI update
-					task_list_ui.queue_update()
-				)
-		)
-
-		# Add a hbox
-		var hbox: UI = ui.add(HBoxContainer)
-
-		# Add a completed mark
-		var completed_button: UI = hbox.add(Button).shrink_center().theme_variation("ButtonCheck").props({
-			"custom_minimum_size": Vector2(16.0, 16.0),
-			"pivot_offset": Vector2(8.0, 8.0),
-			"button_pressed": task.completed,
-			"toggle_mode": true,
-			"action_mode": 0
-		})
-
-		# Add toggled event
-		completed_button.event("toggled", func (pressed):
-			# Set completed
-			task.completed = pressed
-
-			# Motion animation keeps playing infinitely, to change to another animation, you must call 'reset'
-			if completed_button_motion.ref:
-				completed_button_motion.ref.reset()
-
-			# Queue container update
-			panel_ui.queue_update()
-		)
-
-		# Add juicy animation on completed
-		completed_button.motion(func (motion):
-			# Set motion reference
-			completed_button_motion.ref = motion
-			
-			# Play animation on completed
-			if task.completed:
-				# Paralelly animate tracks
-				motion.parallel(func (motion):
-					# Another parallel track to animate both axis individually of the scale property
-					motion.parallel(func (motion):
-						motion.prop("scale:x", true).from_current().ease_out(3.0, 0.1)
-						motion.wait(0.08)
-						motion.prop("scale:y", true).from_current().ease_out(3.0, 0.1)
-						motion.prop("scale:x", true).ease_out(1.5, 0.1)
-						motion.wait(0.08)
-						motion.prop("scale:y", true).ease_out(1.5, 0.1)
-					)
-
-					# Play 'shake' animation
-					motion.prop("rotation").from_current().pulse(deg_to_rad(45.0) * (randf() * 2.0 - 1.0), 0.25)
-				)
-
-				# Reset scale and rotation
-				motion.parallel(func (motion):
-					motion.prop("scale:x").ease_in_out(1.0, 0.25)
-					motion.prop("scale:y").ease_in_out(1.0, 0.25)
-					motion.prop("rotation").ease_in_out(0.0, 0.25)
-				)
-			# Play animation on not completed
-			else:
-				# Animate two properties parallelly
-				motion.parallel(func (motion):
-					# Reset both scale and rotation to zero
-					motion.prop("scale").from_current().ease_in_out(Vector2(1.0, 1.0), 0.25)
-					motion.prop("rotation").from_current().ease_in_out(0.0, 0.25)
-				)
-		)
-
-		# Add the task name LineEdit
-		hbox.add(LineEdit).show(func (ui):
-			# Set current text to the task's name
-			ui.prop("text", task.name)
-
-			# Make it fill horizontally
-			ui.horizontal_expand_fill()
-
-			# Add a text_changed signal
-			ui.event("text_changed", func (new_text):
-				# Set task name
-				task.name = new_text
-			)
-		)
-
-		# Add a delete button
-		button(hbox, "Delete").show(func (ui):
-			# Make it disabled to avoid removal repetition
-			ui.prop("disabled", task.removed)
-
-			# Add the pressed event
-			ui.event("pressed", func ():
-				# Mark as removed
-				task.removed = true
-
-				# Play panel motion
-				if panel_motion.ref: panel_motion.ref.reset()
-
-				# Queue container update
-				panel_ui.queue_update()
-			)
-		)
-	)
-	
-## Creates a new task
-func new_task() -> void:
-	# Create the task
-	var task: Dictionary = {"id": task_id, "name": "New task", "completed": false, "removed": false}
-	
-	# Add to tasks array
+	# Add to the tasks dictionary using task's id as key
+	# and increment `task_id` by one for the next task's id
 	tasks[task_id] = task
-	
-	# Increment task id
 	task_id += 1
-	
-	# Queue task list update
-	task_list_ui.queue_update()
 
-## Called to update the ui
+## Marks a single task as completed or not completed
+func task_set_completed(id: int, completed: bool = true) -> void:
+	# Get the task by it's id
+	var task: Dictionary = tasks[id]
+
+	# Mark `completed` as the passed argument
+	task.completed = completed
+
+## Sets the task's name
+func task_set_name(id: int, name: String) -> void:
+	# Get the task by it's id
+	var task: Dictionary = tasks[id]
+
+	# Set `name` to the passed argument
+	task.name = name
+
+## Deletes a single task by id
+func task_delete(id: int) -> void:
+	# Simply erase from tasks dictionary
+	tasks.erase(id)
+
+## Display a single task to the UI
+func show_task(ui: UI, task: Dictionary) -> void:
+	# Let's contain the task inside a PanelContainer with a HBoxContainer,
+	# you can chain `add` methods to reduce variables. Also add a smooth
+	# transition to the panel container inside the list.
+	var task_panel: UI = ui.add(PanelContainer, task.id).animate_rect().add(HBoxContainer)
+
+	# Let's add content dynamically inside `show`
+	task_panel.show(func (ui):
+		# Let's add a CheckBox for the completed property
+		var task_completed_ui: UI = task_panel.add(CheckBox).prop("pressed", task.completed)
+
+		# Store the task completed reference to reset it when toggled
+		var task_completed_motion: Dictionary = {"ref": null}
+
+		# Connect the `toggled` and set the task's completed value
+		task_completed_ui.event("toggled", func (completed: bool):
+			# Set the task `completed` value to the argument passed by the signal
+			task.completed = completed
+
+			# We need to reset the motion to play another animation
+			if task_completed_motion.ref:
+				task_completed_motion.ref.reset()
+
+			# Update the panel's UI
+			ui.queue_update()
+		)
+
+		# Add a animation to the checkbox
+		task_completed_ui.motion(func (motion: MotionRef):
+			# Set the motion reference
+			task_completed_motion.ref = motion
+
+			# Rotates in a direction when completed
+			if task.completed:
+				# Let's animate the `rotation` property
+				motion.prop("rotation")
+
+				# Start from the node's current rotation
+				motion.from_current()
+
+				# Rotate to a quarter of turn during 500 milliseconds using
+				# easing out transition
+				motion.ease_out(TAU/4.0, 0.5)
+			# Rotates back to zero when not completed
+			else:
+				# Let's animate the `rotation` property
+				motion.prop("rotation")
+
+				# Start from the node's current rotation
+				motion.from_current()
+
+				# Rotate back to zero during 500 milliseconds using
+				# easing out transition
+				motion.ease_out(0.0, 0.5)
+		)
+
+		# Now a single LineEdit for the task description, also make it fill
+		# the remaining width from the HBoxContainer
+		var task_name_ui: UI = task_panel.add(LineEdit).horizontal_expand_fill().prop("text", task.name)
+
+		# Connect the `text_changed` signal to change the task's name
+		task_name_ui.event("text_changed", func (name: String):
+			# Set the task `name` value to the argument passed by the signal
+			task.name = name
+
+			# Update the panel's UI
+			ui.queue_update()
+		)
+
+		# Lastly a button to delete the task
+		var task_delete_ui: UI = task_panel.add(Button).prop("text", "delete")
+
+		# Connect the `pressed` signal to delete the task when pressed
+		task_delete_ui.event("pressed", func ():
+			# Delete the task from ID
+			task_delete(task.id)
+
+			# Here we have no option other than update the entire UI
+			# to update the task list
+			ui.root_queue_update()
+		)
+	)
+
+## Called to update the interface
 func ui_process(ui: UI) -> void:
-	# The main panel with vbox
-	var main_ui: UI = ui.add(PanelContainer).full_rect().theme_variation("BaseContainer").add(VBoxContainer)
+	# Let's contain multiple tasks inside a VBoxContainer, also make
+	# the VBoxContainer fill the entire UI with margin of 8 pixels
+	var tasks_ui: UI = ui.add(VBoxContainer).margin(8.0)
 
-	# Add a simple ms label to main panel
-	ms_label = label(main_ui, "0.00 ms").ref()
+	# For each value in the tasks dictionary, we call the `show_task` function
+	for task in tasks.values():
+		show_task(tasks_ui, task)
+	
+	# Add a button to add new tasks and add smooth transition inside the
+	# task list
+	var new_task_ui: UI = tasks_ui.add(Button).prop("text", "new task").animate_rect()
 
-	# Add a simple label to main panel
-	label(main_ui, "Tasks")
+	# Connect the `pressed` signal to add a new task when pressed
+	new_task_ui.event("pressed", func ():
+		# Create a new task
+		task_create()
 
-	# Add a scroll section with vbox
-	task_list_ui = main_ui.add(ScrollContainer).expand_fill().add(VBoxContainer).expand_fill().show(func (ui):
-		# For each task, render it to the scroll
-		for task in tasks.values():
-			render_task(ui, task)
+		# Update the root UI
+		ui.root_queue_update()
 	)
-
-	# Add a new task button to main panel
-	button(main_ui, "New task").show(func (ui):
-		# Set action mode to 0 (emit signal on mouse down)
-		ui.prop("action_mode", 0)
-
-		# Add the pressed signal
-		ui.event("pressed", self.new_task)
-	)
-
 
 
 

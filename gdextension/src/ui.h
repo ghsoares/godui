@@ -57,7 +57,7 @@ protected:
 
 	void check_update();
 	void pre_update();
-	void ui_update();
+	void ui_process();
 	void post_update();
 	
 	void remove();

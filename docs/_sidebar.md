@@ -1,5 +1,7 @@
-- Getting started
-  - [Quick start](guide/quickstart.md)
+- [Getting started](quickstart.md)
+- Guides
+  - ["Click me" button](guide/click-me-button.md)
+  - [Todo list](guide/todo-list.md)
 - Contributing
   - [Compiling](contributing/compiling.md)
 - API

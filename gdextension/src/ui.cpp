@@ -52,7 +52,7 @@ void UI::check_update() {
 
 	if (repaint) {
 		pre_update();
-		ui_update();
+		ui_process();
 		post_update();
 	}
 }
@@ -81,11 +81,11 @@ void UI::pre_update() {
 	child_idx = 0;
 }
 
-void UI::ui_update() {
+void UI::ui_process() {
 	for (UITypeCollection::Iterator type = types.begin(); type; ++type) {
 		type->value.idx = 0;
 		for (UIChildrenCollection::Iterator child = type->value.children.begin(); child; ++child) {
-			child->value->ui_update();
+			child->value->ui_process();
 		}
 	}
 	repaint = false;
