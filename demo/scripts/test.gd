@@ -69,6 +69,9 @@ func show_task(ui: UI, task: Dictionary) -> void:
 		# Let's add a CheckBox for the completed property
 		var task_completed_ui: UI = task_panel.add(CheckBox).prop("pressed", task.completed)
 
+		# Set the checkbox's pivot_offset to center
+		task_completed_ui.prop("pivot_offset", task_completed_ui.ref().rect_size * 0.5)
+
 		# Store the task completed reference to reset it when toggled
 		var task_completed_motion: Dictionary = {"ref": null}
 
