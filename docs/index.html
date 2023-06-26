@@ -17,15 +17,21 @@
   <div id="app">Loading Godui documentation...</div>
   <script>
     window.$docsify = {
+      auto2top: true,
+      autoHeader: true,
       name: '',
       repo: '',
       coverpage: true,
       loadSidebar: true,
       maxLevel: 4,
+      mergeSidebar: true,
       subMaxLevel: 3,
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md',
       },
+      noCompileLinks: [
+        '/js/.*', '/img/.*'
+      ],
       name: 'Godui',
       nameLink: '#/',
     }

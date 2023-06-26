@@ -10,4 +10,4 @@
 - React to events easily
 
 [GitHub](https://github.com/ghsoares/godui)
-[Get Started](guide/quickstart.md)
+[Get Started](quickstart.md)
