@@ -1,31 +1,18 @@
-const TYPE_REFERENCE = {
-	"float": "https://docs.godotengine.org/en/stable/classes/class_float.html",
-	"int": "https://docs.godotengine.org/en/stable/classes/class_int.html",
-	"bool": "https://docs.godotengine.org/en/stable/classes/class_bool.html",
-	"String": "https://docs.godotengine.org/en/stable/classes/class_string.html",
-	"Dictionary": "https://docs.godotengine.org/en/stable/classes/class_dictionary.html",
-	"Array": "https://docs.godotengine.org/en/stable/classes/class_array.html",
-	"Callable": "https://docs.godotengine.org/en/stable/classes/class_callable.html",
-	"Variant": "https://docs.godotengine.org/en/stable/classes/class_variant.html",
-	"Object": "https://docs.godotengine.org/en/stable/classes/class_object.html",
-	"RefCounted": "https://docs.godotengine.org/en/stable/classes/class_refcounted.html",
-	"Node": "https://docs.godotengine.org/en/stable/classes/class_node.html",
-	"Control": "https://docs.godotengine.org/en/stable/classes/class_control.html",
-	"Container": "https://docs.godotengine.org/en/stable/classes/class_container.html",
-	"ScrollContainer": "https://docs.godotengine.org/en/stable/classes/class_scrollcontainer.html",
-	"Button": "https://docs.godotengine.org/en/stable/classes/class_button.html",
-	"LineEdit": "https://docs.godotengine.org/en/stable/classes/class_lineedit.html",
+const GODOT_VERSION = "4.0";
+
+const CLASS_REFERENCE = {
 	"UI": "api/ui.md",
 	"MotionRef": "api/motion_ref.md"
 };
 
-const markdownType = (type) => {
-	if (TYPE_REFERENCE[type]) {
-		return `[${type}]`;
-	} else {
-		return type;
-	}
+const linkClass = (type) => {
+	return CLASS_REFERENCE[type] || (
+		type == "void" ? "void" : 
+		`https://docs.godotengine.org/en/${GODOT_VERSION}/classes/class_${type.toLowerCase()}.html`
+	);
 }
+
+const tagLinkClass = (type) => `[${type}](${linkClass(type)})`;
 
 (function () {
 	var apifyPlugin = function (hook, vm) {
@@ -37,28 +24,26 @@ const markdownType = (type) => {
 				return "";
 			});
 
-			markdown = markdown.replace(/\<\w+ class-reference\/>/g, () => {
-				return Object.entries(TYPE_REFERENCE).map(([name, url]) => `[${name}]: ${url}`).join("\n");
-			});
+			markdown = markdown.replace(/<\w+ class-ref>(\w+)<\/\w+>/g, (s, className) => `[${className}](${linkClass(className)})`);
 
 			if (parseAPI) {
 				let methods = [];
-	
-				markdown = markdown.replace(/<\w+ class-method>(\w+) +(\w+) *\(((?:[\w ,.=]|\\")*)\) *([\w ]+)?<\/\w+>/g, (s, ret, name, args, flags) => {
-					console.log(ret, name, args, flags);
-
+				let properties = [];
+				
+				// Extract methods
+				markdown = markdown.replace(/<\w+ class-method>(\w+) +(\w+) *\(([\w ,.="]*)\) *([\w ]+)?<\/\w+>/g, (s, ret, name, args, flags) => {
 					s = `### ${name}\n`;
 	
-					s += `**Signature**: ${markdownType(ret)} ${name} (`;
-					let methodTableSignature = `[${name}](#${name}) (`
+					s += `**Signature**: ${tagLinkClass(ret)} ${name} (`;
+					let methodTableSignature = `[${name}](#${name}) (`;
 					let firstArg = true;
 					for (const arg of args.matchAll(/(\w+) (\w+)(?: *= *([a-zA-Z0-9.]+))?/g)) {
 						if (!firstArg) {
 							s += ", ";
 							methodTableSignature += ", ";
 						}
-						s += `${markdownType(arg[1])} ${arg[2]}`;
-						methodTableSignature += `${markdownType(arg[1])} ${arg[2]}`;
+						s += `${tagLinkClass(arg[1])} ${arg[2]}`;
+						methodTableSignature += `${tagLinkClass(arg[1])} ${arg[2]}`;
 						if (arg[3]) {
 							s += ` = ${arg[3]}`;
 							methodTableSignature += ` = ${arg[3]}`;
@@ -74,17 +59,49 @@ const markdownType = (type) => {
 					}
 	
 					methods.push({
-						ret: markdownType(ret),
+						ret: tagLinkClass(ret),
 						signature: methodTableSignature
 					});
 					return s;
+				});
+
+				// Extract properties
+				markdown = markdown.replace(/<\w+ class-property *(readonly)?>(\w+) +(\w+) *=? *([\w ,.="]+)?<\/\w+>/g, (s, readonly, type, name, defVal) => {
+					s = `### ${name}\n`;
+
+					s += `**Signature**: ${tagLinkClass(type)} ${name}`;
+					if (defVal != null)
+						s += ` = \`${defVal}\`\n`;
+					
+					if (!readonly) {
+						s += `- void set_${name}( ${tagLinkClass(type)} value )\n`;
+					}
+					s += `- ${tagLinkClass(type)} get_${name}( )`;
+
+					properties.push({
+						type: tagLinkClass(type),
+						name: `[${name}](#${name})`,
+						defVal
+					});
+					
+					return s;
+				})
+
+				markdown = markdown.replace(/<\w+ class-member-ref>(\w+)<\/\w+>/g, (s, name) => {
+					return `[${name}](#${name})`
 				});
 	
 				let methodsTable = methods.map(m => {
 					return `| ${m.ret} | ${m.signature} |`
 				});
+
+				let propertiesTable = properties.map(p => {
+					let defVal = p.defVal != null ? `\`${p.defVal}\`` : " ";
+					return `| ${p.type} | ${p.name} | ${defVal} |`
+				});
 	
 				markdown = markdown.replace(/<\w+ class-methods>.*<\/\w+>/, () => `| Returns | Method |\n| --- | --- |\n${methodsTable.join("\n")}`);
+				markdown = markdown.replace(/<\w+ class-properties>.*<\/\w+>/, () => `| Type | Property | Default |\n| --- | --- | --- |\n${propertiesTable.join("\n")}`);
 			}
 
 			next(markdown);

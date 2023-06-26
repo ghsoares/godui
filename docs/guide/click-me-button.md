@@ -1,10 +1,8 @@
-<span class-reference/>
-
 # "Click me" button
 
 (This guide builds on top of [Godui's basic usage](quickstart.md#basic-usage))
 
-Let's try a more complete example, let's create a [Button] which tells how many times you clicked it.
+Let's try a more complete example, let's create a <span class-method-ref>Button</span> which tells how many times you clicked it.
 
 Let's being by declaring a variable to store the clicks:
 

@@ -1,14 +1,12 @@
 <span parse-class-api/>
 
-<span class-reference/>
-
 # MotionRef
 
-**Inherits** [RefCounted] < [Object]
+**Inherits** <span class-ref>RefCounted</span> < <span class-ref>Object</span>
 
 ## Description
 
-Motion system provides utility to easily create [UI] animations.
+Motion system provides utility to easily create <span class-ref>UI</span> animations.
 
 ## Methods
 
@@ -34,7 +32,7 @@ Animate multiple tracks parallely, useful to animate multiple properties at the 
 
 <h3 class-method>MotionRef chain(Callable motion_callable)</h3>
 
-Inverse of [parallel](#parallel), animates tracks one after the other, useful to animate keyframes inside parallel tracks.
+Inverse of <span class-member-ref>parallel</span>, animates tracks one after the other, useful to animate keyframes inside parallel tracks.
 
 <h3 class-method>MotionRef scale(Callable motion_callable)</h3>
 
@@ -58,11 +56,11 @@ Repeats keyframes multiple times, it passes the repetition index to `motion_call
 
 <h3 class-method>Variant current()</h3>
 
-Gets current property track's value, must call [prop](#prop) first.
+Gets current property track's value, must call <span class-member-ref>prop</span> first.
 
 <h3 class-method>Variant relative(Variant delta)</h3>
 
-Gets a value relative to the current property track's value by `delta`, must call [prop](#prop) first.
+Gets a value relative to the current property track's value by `delta`, must call <span class-member-ref>prop</span> first.
 
 <h3 class-method>Variant frame(Variant value)</h3>
 

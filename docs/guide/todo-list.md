@@ -1,5 +1,3 @@
-<span class-reference/>
-
 # Todo list
 
 (This guide builds on top of [Godui's basic usage](quickstart.md#basic-usage))
@@ -8,7 +6,7 @@ Going for an even more complete example, we'll make a todo-list UI, which the us
 
 ## Create, update and delete tasks
 
-Firstly, we need to make a way to create, update and delete tasks, we're going to use plain [Dictionary] to describe a single task and store multiple tasks inside another [Dictionary] using the task id as key:
+Firstly, we need to make a way to create, update and delete tasks, we're going to use plain <span class-method-ref>Dictionary</span> to describe a single task and store multiple tasks inside another <span class-method-ref>Dictionary</span> using the task id as key:
 
 ```gdscript
 ## An dictionary storing currently added tasks
@@ -74,7 +72,7 @@ func _ready() -> void:
 
 ## Display a task
 
-Now, we need a way to display a single task in the screen, let's do this by combining [Container]s, [LineEdit] and [Button]s. We can do this in a separate function that receives a task and the parent UI:
+Now, we need a way to display a single task in the screen, let's do this by combining <span class-method-ref>Container</span>s, <span class-method-ref>LineEdit</span> and <span class-method-ref>Button</span>s. We can do this in a separate function that receives a task and the parent UI:
 
 ```gdscript
 ## Display a single task to the UI
@@ -196,7 +194,7 @@ new_task_ui.event("pressed", func ():
 
 Feel free to remove the line that adds a task right from the `_ready`.
 
-Also, as you add more and more tasks, it would be nice to be able to scroll to show all the tasks, let's add a [ScrollContainer]:
+Also, as you add more and more tasks, it would be nice to be able to scroll to show all the tasks, let's add a <span class-method-ref>ScrollContainer</span>:
 
 ```gdscript
 ## Display a single task to the UI
