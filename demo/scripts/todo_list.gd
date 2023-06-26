@@ -70,7 +70,7 @@ func show_task(ui: UI, task: Dictionary) -> void:
 		var task_completed_ui: UI = task_panel.add(CheckBox).prop("pressed", task.completed)
 
 		# Set the checkbox's pivot_offset to center
-		task_completed_ui.prop("pivot_offset", task_completed_ui.ref().rect_size * 0.5)
+		task_completed_ui.prop("pivot_offset", task_completed_ui.ref().size * 0.5)
 
 		# Store the task completed reference to reset it when toggled
 		var task_completed_motion: Dictionary = {"ref": null}
@@ -95,26 +95,62 @@ func show_task(ui: UI, task: Dictionary) -> void:
 
 			# Rotates in a direction when completed
 			if task.completed:
-				# Let's animate the `rotation` property
-				motion.prop("rotation")
+				# Let's animate two properties parallely
+				motion.parallel(func (motion):
+					# Let's animate the `rotation` property
+					motion.prop("rotation")
 
-				# Start from the node's current rotation
-				motion.from_current()
+					# Start from the node's current rotation
+					motion.from_current()
 
-				# Rotate to a quarter of turn during 500 milliseconds using
-				# easing out transition
-				motion.ease_out(TAU/4.0, 0.5)
-			# Rotates back to zero when not completed
+					# Rotate to a full turn during 500 milliseconds using
+					# easing out transition
+					motion.ease_out(TAU, 0.5)
+
+					# Let's also animate the `scale` property
+					motion.prop("scale")
+
+					# Start from the node's current scale
+					motion.from_current()
+
+					# Scale to 1.5 during 500 milliseconds using
+					# easing out transition
+					motion.ease_out(Vector2(1.5, 1.5), 0.5)
+				)
+
+				# After above parallel animation finishes, let's animate scale
+				motion.prop("scale")
+
+				# Scale to 1.0 during 500 milliseconds using
+				# easing in-out transition
+				motion.ease_in_out(Vector2(1.0, 1.0), 0.5)
+
+				# Also snap rotation back to zero (it's the same as 360)
+				motion.prop("rotation").frame(0.0)
+			# Rotates and scales back to zero when not completed
 			else:
-				# Let's animate the `rotation` property
-				motion.prop("rotation")
+				# Let's animate two properties parallely
+				motion.parallel(func (motion):
+					# Let's animate the `rotation` property
+					motion.prop("rotation")
 
-				# Start from the node's current rotation
-				motion.from_current()
+					# Start from the node's current rotation
+					motion.from_current()
 
-				# Rotate back to zero during 500 milliseconds using
-				# easing out transition
-				motion.ease_out(0.0, 0.5)
+					# Rotate to zero during 500 milliseconds using
+					# easing in-out transition
+					motion.ease_in_out(0.0, 0.5)
+
+					# Let's also animate the `scale` property
+					motion.prop("scale")
+
+					# Start from the node's current scale
+					motion.from_current()
+
+					# Scale to 1.0 during 500 milliseconds using
+					# easing in-out transition
+					motion.ease_in_out(Vector2(1.0, 1.0), 0.5)
+				)
 		)
 
 		# Now a single LineEdit for the task description, also make it fill

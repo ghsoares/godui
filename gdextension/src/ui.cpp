@@ -4,12 +4,14 @@
 
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/classes/random_number_generator.hpp>
 #include <godot_cpp/classes/gd_script.hpp>
 #include <godot_cpp/classes/gd_script_native_class.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/theme_db.hpp>
 
 using namespace godot;
 
@@ -41,6 +43,27 @@ void UI::clear_children() {
 			child->value->node->queue_free();
 		}
 	}
+}
+
+Ref<UI> UI::debug(bool p_enabled) {
+	if (p_enabled == debug_canvas_item.is_valid()) return this;
+	ERR_FAIL_COND_V_MSG(!Object::cast_to<Control>(node), this, "Node must inherit Control");
+
+	Control *control = Object::cast_to<Control>(node);
+
+	if (p_enabled) {
+		debug_canvas_item = RenderingServer::get_singleton()->canvas_item_create();
+		RenderingServer::get_singleton()->canvas_item_set_parent(debug_canvas_item, control->get_canvas_item());
+
+		if (debug_font.is_null()) {
+			debug_font = ThemeDB::get_singleton()->get_fallback_font();
+		}
+	} else {
+		RenderingServer::get_singleton()->free_rid(debug_canvas_item);
+		debug_canvas_item = RID();
+	}
+
+	return this;
 }
 
 void UI::check_update() {
@@ -115,6 +138,8 @@ void UI::post_update() {
 	}
 	
 	node->set_block_signals(false);
+
+	debug_prev_update_elapsed = 0.0;
 }
 
 void UI::remove() {
@@ -169,6 +194,8 @@ void UI::draw_update(float p_delta) {
 		}
 	}
 
+	debug_prev_update_elapsed += p_delta / 0.25;
+
 	if (rect_animation_speed > 0.0) {
 		Control *control = Object::cast_to<Control>(node);
 		Rect2 curr = control->get_rect();
@@ -195,6 +222,65 @@ void UI::draw_update(float p_delta) {
 		tr *= Transform2D(Vector2(delta_scale.x, 0.0), Vector2(0.0, delta_scale.y), delta_pos);
 
 		RenderingServer::get_singleton()->canvas_item_set_transform(rid, tr);
+	}
+
+	if (debug_canvas_item.is_valid()) {
+		RenderingServer::get_singleton()->canvas_item_clear(debug_canvas_item);
+
+		Control *control = Object::cast_to<Control>(node);
+		if (control) {
+			Vector2 a = Vector2();
+			Vector2 b = control->get_size();
+			Color rect_color = debug_color;
+			Color update_color = debug_update_color;
+			update_color.a *= CLAMP(1.0 - debug_prev_update_elapsed, 0.0, 1.0);
+
+			RenderingServer::get_singleton()->canvas_item_set_draw_index(debug_canvas_item, node->get_child_count());
+			RenderingServer::get_singleton()->canvas_item_add_rect(
+				debug_canvas_item,
+				Rect2(a, b),
+				update_color
+			);
+			RenderingServer::get_singleton()->canvas_item_add_line(
+				debug_canvas_item,
+				Vector2(a.x, a.y),
+				Vector2(b.x, a.y),
+				rect_color,
+				3.0
+			);
+			RenderingServer::get_singleton()->canvas_item_add_line(
+				debug_canvas_item,
+				Vector2(b.x, a.y),
+				Vector2(b.x, b.y),
+				rect_color,
+				3.0
+			);
+			RenderingServer::get_singleton()->canvas_item_add_line(
+				debug_canvas_item,
+				Vector2(b.x, b.y),
+				Vector2(a.x, b.y),
+				rect_color,
+				3.0
+			);
+			RenderingServer::get_singleton()->canvas_item_add_line(
+				debug_canvas_item,
+				Vector2(a.x, b.y),
+				Vector2(a.x, a.y),
+				rect_color,
+				3.0
+			);
+
+			String debug_text = vformat("IID: %s", node->get_instance_id());
+			Vector2 size = debug_font->get_string_size(debug_text, (HorizontalAlignment)0, -1, 12);
+
+			debug_font->draw_string(
+				debug_canvas_item,
+				Vector2(0.0, size.y),
+				debug_text,
+				(HorizontalAlignment)0,
+				-1, 12
+			);
+		}
 	}
 }
 
@@ -613,6 +699,7 @@ Ref<UI> UI::create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui) {
 			ui->notification(Node::NOTIFICATION_ENTER_TREE);
 	}
 
+
 	return ui;
 }
 
@@ -625,6 +712,7 @@ void UI::_bind_methods() {
 	
 	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
 	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
+	ClassDB::bind_method(D_METHOD("debug", "enabled"), &UI::debug, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("show", "ui_callable"), &UI::show);
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
@@ -687,6 +775,16 @@ UI::UI() {
 	rect_current = Rect2();
 	rect_animation_speed = 0.0;
 	node_motion = Ref<MotionRef>();
+
+	debug_canvas_item = RID();
+	debug_prev_update_elapsed = 1.0;
+
+	Ref<RandomNumberGenerator> rng;
+	rng.instantiate();
+	rng->randomize();
+
+	debug_color = Color::from_hsv(rng->randf(), 1.0, 1.0, 0.3);
+	debug_update_color = debug_color;
 }
 
 UI::~UI() {
@@ -702,4 +800,7 @@ UI::~UI() {
 
 	signals.clear();
 	types.clear();
+
+	if (debug_canvas_item.is_valid())
+		RenderingServer::get_singleton()->free_rid(debug_canvas_item);
 }

@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/control.hpp>
+#include <godot_cpp/classes/font.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/callable.hpp>
 
@@ -50,6 +51,12 @@ class UI : public RefCounted {
 	float rect_animation_speed;
 	Ref<MotionRef> node_motion;
 
+	RID debug_canvas_item;
+	Ref<Font> debug_font;
+	float debug_prev_update_elapsed;
+	Color debug_color;
+	Color debug_update_color;
+
 protected:
 	static void _bind_methods();
 
@@ -70,6 +77,8 @@ protected:
 public:
 	void before_draw();
 	void clear_children();
+
+	Ref<UI> debug(bool p_enabled = true);
 
 	Ref<UI> add(Object *p_type, const Variant &p_key = Variant(), bool p_persist = false);
 	Ref<UI> show(const Callable &p_ui_callable);

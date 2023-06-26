@@ -460,7 +460,7 @@ For this, let's set `pivot_offset` half the checkbox's size:
 var task_completed_ui: UI = task_panel.add(CheckBox).prop("pressed", task.completed)
 
 # Set the checkbox's pivot_offset to center
-task_completed_ui.prop("pivot_offset", task_completed_ui.ref().rect_size * 0.5)
+task_completed_ui.prop("pivot_offset", task_completed_ui.ref().size * 0.5)
 ```
 
 Now we can work with the motion system, let's being with a simple rotation animation:
@@ -567,11 +567,11 @@ task_completed_ui.event("toggled", func (completed: bool):
 )
 ```
 
-Ok, let's once again hit play, check the task and when unchecking it... it rotates back! perfect!
-
-That's just the basic of motion system, you can chain multiple properties, animate then parallely, use different transitions, call functions, etc. More on that is detailed at [MotionRef class reference](api/motion_ref.md) and [Motion system advanced guide](guide/motion-system-advanced.md).
+Ok, let's once again hit play, check the task and when unchecking it, the checkbox rotates back! Perfect!
 
 Congratulations! Now you can animate UIs with Godui!
+
+That's just the basic of motion system, you can chain multiple properties, animate then parallely, use different transitions, call functions, etc. More on that is detailed at [MotionRef class reference](api/motion_ref.md) and [Motion system advanced guide](guide/motion-system-advanced.md).
 
 Here is the complete code for this section:
 
@@ -648,7 +648,7 @@ func show_task(ui: UI, task: Dictionary) -> void:
 		var task_completed_ui: UI = task_panel.add(CheckBox).prop("pressed", task.completed)
 
 		# Set the checkbox's pivot_offset to center
-		task_completed_ui.prop("pivot_offset", task_completed_ui.ref().rect_size * 0.5)
+		task_completed_ui.prop("pivot_offset", task_completed_ui.ref().size * 0.5)
 
 		# Store the task completed reference to reset it when toggled
 		var task_completed_motion: Dictionary = {"ref": null}

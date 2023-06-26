@@ -33,7 +33,7 @@ if clicks == 0:
 # Else display the number of clicks
 else:
 	# We're using format string to insert the click count inside the text
-	button.prop("text" "you clicked %d times!" % clicks)
+	button.prop("text", "you clicked %d times!" % clicks)
 ```
 
 Now for the important part, we need to increment `clicks` every time we click the button, to do this we need to connect to the button's `pressed` signal:
@@ -54,12 +54,14 @@ button.event("pressed", func ():
 	# Increment "clicks" by 1 every time the signal is emitted
 	clicks += 1
 
-	# Requests the UI to update:
+	# Requests the UI to update
 	ui.queue_update()
 )
 ```
 
-Now, the first time you press the button, you should see the text `you clicked 1 times!`, when you press again you should see `you clicked 2 times!` and so on. Congratulations! You now have a button with dynamic text added with help of Godui!
+Now, the first time you press the button, you should see the text `you clicked 1 times!`, when you press again you should see `you clicked 2 times!` and so on. 
+
+Congratulations! You now have a button with dynamic text added with help of Godui! :tada:
 
 The complete code of this guide:
 
@@ -96,14 +98,14 @@ func ui_process(ui: UI) -> void:
 	# Else display the number of clicks
 	else:
 		# We're using format string to insert the click count inside the text
-		button.prop("text" "you clicked %d times!" % clicks)
+		button.prop("text", "you clicked %d times!" % clicks)
 	
 	# Here we're connecting to the button's "pressed" signal 
 	button.event("pressed", func (): 
 		# Increment "clicks" by 1 every time the signal is emitted
 		clicks += 1
 
-		# Requests the UI to update:
+		# Requests the UI to update
 		ui.queue_update()
 	)
 ```
