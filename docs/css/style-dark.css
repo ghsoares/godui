@@ -1,0 +1,9 @@
+:root {
+	--base-background-color: #2e3236;
+	--sidebar-background: #202326;
+	--base-color: #d9cddf;
+	--heading-color: #e4e0f0;
+	--link-color: #7b8be0;
+	--link-color--hover: #b6c8f0;
+	--link-disabled: #929598;
+}

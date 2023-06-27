@@ -1,4 +1,4 @@
-<span parse-class-api/>
+<param parse-class-api/>
 
 # MotionRef
 
@@ -24,7 +24,7 @@ Sets if the Motion should loop when animation ends.
 
 <h3 class-method>MotionRef scope(Callable motion_callable)</h3>
 
-<span class-empty-method/>
+Helper function to create a scope to call methods from Motion as arguments from chained calls, see [godotengine/godot#78334](https://github.com/godotengine/godot/issues/78334)
 
 <h3 class-method>MotionRef parallel(Callable motion_callable)</h3>
 
@@ -32,7 +32,7 @@ Animate multiple tracks parallely, useful to animate multiple properties at the 
 
 <h3 class-method>MotionRef chain(Callable motion_callable)</h3>
 
-Inverse of <span class-member-ref>parallel</span>, animates tracks one after the other, useful to animate keyframes inside parallel tracks.
+Inverse of <span class-method-ref>parallel</span>, animates tracks one after the other, useful to animate keyframes inside parallel tracks.
 
 <h3 class-method>MotionRef scale(Callable motion_callable)</h3>
 
@@ -56,11 +56,11 @@ Repeats keyframes multiple times, it passes the repetition index to `motion_call
 
 <h3 class-method>Variant current()</h3>
 
-Gets current property track's value, must call <span class-member-ref>prop</span> first.
+Gets current property track's value, must call <span class-method-ref>prop</span> first.
 
 <h3 class-method>Variant relative(Variant delta)</h3>
 
-Gets a value relative to the current property track's value by `delta`, must call <span class-member-ref>prop</span> first.
+Gets a value relative to the current property track's value by `delta`, must call <span class-method-ref>prop</span> first.
 
 <h3 class-method>Variant frame(Variant value)</h3>
 

@@ -1,4 +1,4 @@
-<span parse-class-api/>
+<param parse-class-api/>
 
 # UI
 
@@ -8,19 +8,9 @@
 
 Base class for user interfaces, wraps a node and provide utility functions to modify it. The majority of the functions return the same UI reference to be able to chain functions.
 
-## Properties
-
-<span class-properties>Property list will show from the [docs website](https://ghsoares.github.io/godui/#/api/ui?id=methods)</span>
-
 ## Methods
 
 <span class-methods>Method list will show from the [docs website](https://ghsoares.github.io/godui/#/api/ui?id=methods)</span>
-
-## Property descriptions
-
-<h3 class-property>String test = "abc"</h3>
-
-A test for property
 
 ## Method descriptions
 
@@ -56,7 +46,7 @@ Sets multiple properties from `properties` with each key being the property's na
 
 Creates a <span class-ref>MotionRef</span> reference if not exists and call `motion_callable` with it to create animations.
 
-<span class-method="UI event(String signal_name, Callable target)"/>
+<h3 class-method>UI event(String signal_name, Callable target)</h3>
 
 Connects the <span class-ref>Node</span>'s signal of name `signal_name` to the callable `target`.
 
