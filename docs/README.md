@@ -8,7 +8,7 @@ Godui (pronounced as go-dooey) helps you to easiy create dynamic graphical user 
 
 ### Declarative
 
-All the tree structure rendering is done inside code declaratively, this means you don't need to handle the node creation, referencing, update or disposal, Godui handles all of that while leaving freedom to modify the node as you want.
+All the tree structure rendering is done inside code declaratively, this means you don't need to handle with any specific implementation to create, reference, update or delete a node, Godui handles all of that while leaving freedom to modify the node as you want.
 
 ### Reactivity
 
@@ -21,5 +21,3 @@ The Motion system allows you to easily define custom animations to interface ins
 ### Compatibility
 
 As Godui behaves as a wrapper to easily modify the scene tree of a interface, it's 100% compatible with all Godot's built-in types and custom classes, including Control and non-Control nodes, while focusing on more utilities for Controls, it's completely possible to add other node types to the interface.
-
-
