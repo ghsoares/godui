@@ -224,6 +224,14 @@ void UI::draw_update(float p_delta) {
 		RenderingServer::get_singleton()->canvas_item_set_transform(rid, tr);
 	}
 
+	if (node_draw.is_valid()) {
+		node_draw->time += p_delta;
+		node_draw->delta = p_delta;
+		if (node_draw->queued_redraw) {
+			node_draw->node->queue_redraw();
+		}
+	}
+
 	if (debug_canvas_item.is_valid()) {
 		RenderingServer::get_singleton()->canvas_item_clear(debug_canvas_item);
 
@@ -369,6 +377,22 @@ Ref<UI> UI::motion(const Callable &p_motion_callable) {
 		node_motion->clear();
 	}
 	p_motion_callable.call(node_motion);
+
+	return this;
+}
+
+Ref<UI> UI::draw(const Callable &p_canvas_item_callable) {
+	ERR_FAIL_COND_V_MSG(!Object::cast_to<CanvasItem>(node), this, "Node must inherit CanvasItem");
+
+	if (node_draw.is_null()) {
+		CanvasItem *ci = Object::cast_to<CanvasItem>(node);
+		node_draw.instantiate();
+		node_draw->node = ci;
+		node_draw->draw_callable = p_canvas_item_callable;
+		ci->connect("draw", Callable(node_draw.ptr(), "_redraw"));
+	}
+
+	node_draw->queue_redraw();
 
 	return this;
 }
@@ -718,6 +742,7 @@ void UI::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
 	ClassDB::bind_method(D_METHOD("props", "props"), &UI::props);
 	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
+	ClassDB::bind_method(D_METHOD("draw", "draw_callable"), &UI::draw);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);
 	
 	ClassDB::bind_method(D_METHOD("queue_update"), &UI::queue_update);
@@ -772,9 +797,12 @@ UI::UI() {
 	types = UITypeCollection();
 	child_idx = 0;
 
+	update_callable = Callable();
+
 	rect_current = Rect2();
 	rect_animation_speed = 0.0;
 	node_motion = Ref<MotionRef>();
+	node_draw = Ref<DrawRef>();
 
 	debug_canvas_item = RID();
 	debug_prev_update_elapsed = 1.0;

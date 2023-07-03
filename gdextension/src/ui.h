@@ -2,6 +2,7 @@
 #define GODUI_UI_H
 
 #include "motion_ref.h"
+#include "draw_ref.h"
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -50,6 +51,7 @@ class UI : public RefCounted {
 	Rect2 rect_current;
 	float rect_animation_speed;
 	Ref<MotionRef> node_motion;
+	Ref<DrawRef> node_draw;
 
 	RID debug_canvas_item;
 	Ref<Font> debug_font;
@@ -86,6 +88,7 @@ public:
 	Ref<UI> prop(const String &p_name, const Variant &p_val);
 	Ref<UI> props(const Dictionary &p_props);
 	Ref<UI> motion(const Callable &p_motion_callable);
+	Ref<UI> draw(const Callable &p_canvas_item_callable);
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
 
 	Ref<UI> queue_update();

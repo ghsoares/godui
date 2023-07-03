@@ -2,6 +2,7 @@
 
 #include "ui.h"
 #include "motion_ref.h"
+#include "draw_ref.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -15,6 +16,7 @@ void initialize_godui_module(ModuleInitializationLevel p_level) {
         case MODULE_INITIALIZATION_LEVEL_SCENE: {
             ClassDB::register_class<UI>();
             ClassDB::register_class<MotionRef>();
+            ClassDB::register_class<DrawRef>();
         } break;
     }
 }

@@ -144,6 +144,12 @@ Ref<MotionRef> MotionRef::loop(bool p_enabled) {
 	return this;
 }
 
+Ref<MotionRef> MotionRef::delay(float p_duration) {
+	time -= p_duration;
+	prev_time -= p_duration;
+	return this;
+}
+
 Ref<MotionRef> MotionRef::scope(const Callable &p_motion_callable) {
 	bool key_parallel = this->key_parallel;
 	float key_time = this->key_time;
@@ -354,7 +360,8 @@ void MotionRef::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_duration"), &MotionRef::get_duration);
 
 	ClassDB::bind_method(D_METHOD("reset"), &MotionRef::reset);
-	ClassDB::bind_method(D_METHOD("loop", "enabled"), &MotionRef::loop);
+	ClassDB::bind_method(D_METHOD("loop", "enabled"), &MotionRef::loop, DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("delay", "duration"), &MotionRef::delay);
 	ClassDB::bind_method(D_METHOD("scope", "motion_callable"), &MotionRef::scope);
 	ClassDB::bind_method(D_METHOD("parallel", "motion_callable"), &MotionRef::parallel);
 	ClassDB::bind_method(D_METHOD("chain", "motion_callable"), &MotionRef::chain);

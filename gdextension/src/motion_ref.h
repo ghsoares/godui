@@ -85,7 +85,8 @@ public:
 	inline float get_time() const { return key_time; }
 	inline float get_duration() const { return key_duration; }
 
-	Ref<MotionRef> loop(bool p_enabled);
+	Ref<MotionRef> loop(bool p_enabled = true);
+	Ref<MotionRef> delay(float p_duration);
 	Ref<MotionRef> scope(const Callable &p_motion_callable);
 	Ref<MotionRef> parallel(const Callable &p_motion_callable);
 	Ref<MotionRef> chain(const Callable &p_motion_callable);
