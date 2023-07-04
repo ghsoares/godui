@@ -3,21 +3,6 @@ extends Control
 ## The UI reference
 var ui: UI = null
 
-## The noise
-@export var noise: FastNoiseLite
-
-## The number of arms
-@export var sections: int = 4
-
-## The number of dots
-@export var dots: int = 8
-
-## Dots speed
-@export var speed: float = 1.0
-
-## Spacing between each dot
-@export var spacing: float = 1.0
-
 ## Called when the node is ready
 func _ready() -> void:
 	# Create the UI reference, then bind it to self
@@ -31,37 +16,47 @@ func _notification(what: int) -> void:
 	# Notify the interface from the Node's notification
 	if ui: ui.notification(what)
 
-func arm(nosize: float, offset: float) -> Vector2:
-	var p: Vector2 = Vector2()
-	for i in range(sections):
-		var freqx: float = noise.get_noise_2d(i * 64.0, 0.0) * 0.5 + 0.5
-		var freqy: float = noise.get_noise_2d(i * 256.0, 256.0) * 0.5 + 0.5
-		freqx = lerp(-8.0, 8.0, freqx)
-		freqy = lerp(-8.0, 8.0, freqy)
-		var s: float = size / sections
-		p += Vector2(
-			cos(offset * TAU * freqx) * s,
-			sin(offset * TAU * freqy) * s
-		)
-	return p
+## Draws an arc with caps
+func draw_capped_arc(node: CanvasItem, center: Vector2, radius: float, start: float, end: float, point_count: int, color: Color, width: float) -> void:
+	node.draw_arc(center, radius, start, end, point_count, color, width, true)
+	node.draw_circle(center + Vector2(radius, 0.0).rotated(end), width * 0.5, color)
+	node.draw_circle(center + Vector2(radius, 0.0).rotated(start), width * 0.5, color)
 
 ## Called to update the interface
 func ui_process(ui: UI) -> void:
-	var main: UI = ui.add(Control).prop("custom_minimum_size", Vector2(64.0, 64.0))
+	# Add a simple control to contain the loading animation
+	var main: UI = ui.add(Control).prop("custom_minimum_size", Vector2(128.0, 128.0))
 
+	# "draw" allows to directly draw something in the node
 	main.draw(func (draw):
-		var t: float = draw.time
+		# Get current frame time
+		var time: float = draw.time
+
+		# Get the target node reference
 		var node: Control = draw.node
+
+		# Get the size of the control
 		var size: Vector2 = node.size
-		var rad: float = 3.0
-		var s: Vector2 = size - Vector2.ONE * rad * 2.0
 
-		for i in range(dots):
-			var off: float = t * speed + (i / (dots - 1.0)) * spacing
-			var d: Vector2 = arm(min(s.x, s.y) * 0.5, off) + size * 0.5
-			var c: Color = Color.BLACK.lerp(Color.RED, i / (dots - 1.0))
+		# Get the radius of the arc
+		var rad: float = min(size.x, size.y) * 0.5
 
-			node.draw_circle(d, rad, c)
+		# Animate arc start and end angles
+		var a0: float = sin(time * TAU / 5.0) * deg_to_rad(90.0)
+		var a1: float = cos(time * TAU / 5.0) * deg_to_rad(90.0)
 
+		# a0 should be less than a1
+		if a1 < a0:
+			var t: float = a1
+			a1 = a0
+			a0 = t
+
+		# Animate arc rotation
+		var rot: float = time * TAU / 1.0
+
+		# Draw an arc with both caps
+		draw_capped_arc(node, size * 0.5, rad - 4.0, rot + a0, rot + a1, 32, Color.RED, 8.0)
+		
+		# Call "redraw" to request to draw again
 		draw.redraw()
 	)

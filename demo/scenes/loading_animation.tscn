@@ -1,9 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://bngf084gb1tp"]
+[gd_scene load_steps=2 format=3 uid="uid://bngf084gb1tp"]
 
 [ext_resource type="Script" path="res://scripts/loading_animation.gd" id="1_q0smi"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_u24vo"]
-fractal_octaves = 1
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -13,7 +10,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_q0smi")
-noise = SubResource("FastNoiseLite_u24vo")
-dots = 2
-speed = 0.4
-spacing = 0.1
