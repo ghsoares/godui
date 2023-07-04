@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/loading_animation.gd" id="1_q0smi"]
 
-[node name="Control" type="Control"]
+[node name="LoadingAnimation" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
