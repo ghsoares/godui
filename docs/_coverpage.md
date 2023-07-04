@@ -1,6 +1,6 @@
 ![logo](icon.svg)
 
-# Godui <small>1.0 beta</small>
+# Godui
 
 > An easy to use GUI library for Godot.
 
