@@ -44,7 +44,11 @@ Sets multiple properties from `properties` with each key being the property's na
 
 <h3 class-method>UI motion(Callable motion_callable)</h3>
 
-Creates a <span class-ref>MotionRef</span> reference if not exists and call `motion_callable` with it to create animations.
+Creates a <span class-ref>MotionRef</span> reference if not exists for the UI yet and call `motion_callable` with it to create animations.
+
+<h3 class-method>UI draw(Callable draw_callable)</h3>
+
+Creates a <span class-ref>DrawRef</span> reference if not exists for the UI yet and call `draw_callable` with it to create drawings.
 
 <h3 class-method>UI event(String signal_name, Callable target)</h3>
 

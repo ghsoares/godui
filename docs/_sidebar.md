@@ -8,3 +8,4 @@
 - API
   - [UI](api/ui.md)
   - [MotionRef](api/motion_ref.md)
+  - [DrawRef](api/draw_ref.md)

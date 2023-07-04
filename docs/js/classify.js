@@ -2,7 +2,8 @@ const GODOT_VERSION = "4.0";
 
 const CLASS_REFERENCE = {
 	"UI": "api/ui.md",
-	"MotionRef": "api/motion_ref.md"
+	"MotionRef": "api/motion_ref.md",
+	"DrawRef": "api/draw_ref.md"
 };
 
 const createLink = (label, link, newWindow = true) => {
@@ -73,7 +74,7 @@ const anchorLinkClass = (type) => {
 					let propEl = $(`<h3 class="class-property" id="prop-${propName}"></h3>`);
 					propEl.append(anchorLinkClass(propType));
 					propEl.append(" ");
-					propEl.append(createLink(propName, `#/${vm.route.file}?id=prop-${propName}`).addClass("class-property-name"));
+					propEl.append(createLink(propName, `#/${vm.route.file}?id=prop-${propName}`, false).addClass("class-property-name"));
 					if (propDef !== undefined) {
 						propEl.append(" = ");
 						propEl.append($(Prism.highlight(propDef, Prism.languages.gdscript, 'gdscript')));
@@ -131,7 +132,7 @@ const anchorLinkClass = (type) => {
 					let methodEl = $(`<h3 class="class-method" id="method-${methodName}"></h3>`);
 					methodEl.append(anchorLinkClass(methodReturn));
 					methodEl.append(" ");
-					methodEl.append(createLink(methodName, `#/${vm.route.file}?id=method-${methodName}`).addClass("class-method-name"));
+					methodEl.append(createLink(methodName, `#/${vm.route.file}?id=method-${methodName}`, false).addClass("class-method-name"));
 					methodEl.append(" ( ");
 					if (methodArguments.length > 0) {
 						let first = true;
@@ -165,7 +166,7 @@ const anchorLinkClass = (type) => {
 						tableEl.append(
 							$(`<tr class="class-property-row"></tr>`).append(
 								$(`<td class="class-property-type"></td>`).append(anchorLinkClass(prop.type)),
-								$(`<td class="class-property-name"></td>`).append(createLink(prop.name, `#/${vm.route.file}?id=prop-${prop.name}`)),
+								$(`<td class="class-property-name"></td>`).append(createLink(prop.name, `#/${vm.route.file}?id=prop-${prop.name}`, false)),
 								$(`<td class="class-property-default"></td>`).append(prop.default === undefined ? "" : $(Prism.highlight(prop.default, Prism.languages.gdscript, 'gdscript')))
 							)
 						);
@@ -180,7 +181,7 @@ const anchorLinkClass = (type) => {
 					for (const method of methods) {
 						let signature = $(`<td class="class-method"></td>`);
 						signature
-							.append(createLink(method.name, `#/${vm.route.file}?id=method-${method.name}`).addClass("class-method-name"))
+							.append(createLink(method.name, `#/${vm.route.file}?id=method-${method.name}`, false).addClass("class-method-name"))
 							.append(" ( ");
 						
 						if (method.arguments.length > 0) {
