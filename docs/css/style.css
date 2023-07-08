@@ -24,6 +24,8 @@
 	--code-font-family: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, Courier, monospace;
 	--link-text-decoration: none;
 	--link-text-decoration--hover: underline;
+	--sidebar-name-font-weight: 600;
+	--sidebar-toggle-icon-stroke-width: 2px;
 }
 
 a:not([href]) {
@@ -70,4 +72,8 @@ a:not([href]) {
 
 a.class-ref-anchor {
 	font-family: var(--code-font-family);
+}
+
+.token.class-name {
+	color: var(--code-theme-class-name);
 }
