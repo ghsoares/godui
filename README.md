@@ -13,4 +13,4 @@ Godui is a GUI library for Godot 4.x which provides utilities to easily create d
 
 Head to [Godui's documentation](https://ghsoares.github.io/godui) page to learn more about it.
 
-If you really liked the project and want to support it further, feel free to [buy me a coffee](https://buymeacoffee.com/ghsoares).
+If you really liked the project and want to support it further, feel free to [buy me a coffee](https://www.buymeacoffee.com/ghsoares).
