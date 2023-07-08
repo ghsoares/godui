@@ -20,7 +20,7 @@ bin_folder = "../addons/{}/bin".format(module_name)
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "{}/{}.{}.{}.framework/libgdexample.{}.{}".format(
+        "{}/lib{}.{}.{}.framework/lib{}.{}.{}".format(
             bin_folder,
             module_name, env["platform"], env["target"], 
             module_name, env["platform"], env["target"]
@@ -29,7 +29,7 @@ if env["platform"] == "macos":
     )
 else:
     library = env.SharedLibrary(
-        "{}/{}{}{}".format(bin_folder, module_name, env["suffix"], env["SHLIBSUFFIX"]),
+        "{}/lib{}{}{}".format(bin_folder, module_name, env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 
