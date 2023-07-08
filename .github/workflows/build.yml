@@ -40,13 +40,13 @@ jobs:
             arch: x86_64
           - identifier: macos-debug
             name: 🍎 macOS (universal) Debug
-            runner: macos-release
+            runner: macos-latest
             target: template_debug
             platform: macos
             arch: universal
           - identifier: macos-release
             name: 🍎 macOS (universal) Release
-            runner: macos-release
+            runner: macos-latest
             target: template_release
             platform: macos
             arch: universal
