@@ -16,64 +16,55 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - identifier: windows-debug
+            runner: windows-latest
+            name: 🏁 Windows Debug
+            target: template_debug
+            platform: windows
+            arch: x86_64
+          - identifier: windows-release
+            runner: windows-latest
+            name: 🏁 Windows Release
+            target: template_release
+            platform: windows
+            arch: x86_64
+          - identifier: macos-debug
+            runner: macos-latest
+            name: 🍎 macOS (universal) Debug
+            target: template_debug
+            platform: macos
+            arch: universal
+          - identifier: macos-release
+            runner: macos-latest
+            name: 🍎 macOS (universal) Release
+            target: template_release
+            platform: macos
+            arch: universal
           - identifier: linux-debug
-            name: Linux Debug
+            runner: ubuntu-latest
+            name: 🐧 Linux Debug
             runner: ubuntu-20.04
             target: template_debug
             platform: linux
             arch: x86_64
           - identifier: linux-release
-            name: Linux Release
+            runner: ubuntu-latest
+            name: 🐧 Linux Release
             runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: x86_64
-          - identifier: windows-debug
-            name: Windows Debug
-            runner: ubuntu-20.04
-            target: template_debug
-            platform: windows
-            arch: x86_64
-          - identifier: windows-release
-            name: Windows Release
-            runner: ubuntu-20.04
-            target: template_release
-            platform: windows
-            arch: x86_64
-          - identifier: android-release
-            name: Android Release
-            runner: ubuntu-20.04
-            target: template_release
-            platform: android
-            arch: arm64
 
     steps:
-      - name: (Windows) Install mingw64
-        if: ${{ startsWith(matrix.identifier, 'windows-') }}
-        shell: sh
-        run: |
-          sudo apt-get install mingw-w64
-          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
-      - name: (Android) Set up Java 11
-        if: ${{ startsWith(matrix.identifier, 'android-') }}
-        uses: actions/setup-java@v1
+      - name: Checkout project
+        uses: actions/checkout@v3
         with:
-          java-version: 11
-
-      - name: (Android) Set up Android SDK
-        if: ${{ startsWith(matrix.identifier, 'android-') }}
-        uses: android-actions/setup-android@v2
-
-      - name: (Android) Install Android Tools
-        if: ${{ startsWith(matrix.identifier, 'android-') }}
-        shell: sh
-        run: |
-          "$ANDROID_SDK_ROOT"/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "build-tools;30.0.3" "platforms;android-29" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;21.4.7075529"
-
+          submodules: recursive
+      
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Set up SCons
         shell: bash
@@ -82,38 +73,30 @@ jobs:
           python -m pip install scons
           scons --version
 
-      - name: Checkout project
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
+      - name: Linux dependencies
+        if: ${{ matrix.platform == 'linux' }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qqq build-essential pkg-config
 
-#       TODO: Cache doesn't work yet. SCons rebuilds the objects even if they already exist. Could be caused by modification dates or extension_api.json.
-#             fetch-depth: 0 May be needed for cache. See: <https://github.com/actions/checkout/issues/468>.
-#      - name: Set up SCons cache
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            ${{ github.workspace }}/.scons-cache/
-#            ${{ github.workspace }}/**/.sconsign.dblite
-#            ${{ github.workspace }}/godot-cpp/gen/
-#          key: ${{ matrix.identifier }}-${{ github.ref }}-${{ github.sha }}
-#          restore-keys: |
-#            ${{ matrix.identifier }}-${{ github.ref }}-${{ github.sha }}
-#            ${{ matrix.identifier }}-${{ github.ref }}
-#            ${{ matrix.identifier }}
+      - name: Setup MinGW for Windows/MinGW build
+        if: ${{ matrix.platform == 'windows' }}
+        uses: egor-tensin/setup-mingw@v2
+      
+      - name: Compile godot-cpp
+        shell: sh
+        run: |
+          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
+        working-directory: gdextension/godot-cpp
 
       - name: Compile extension
         shell: sh
-#        env:
-#          SCONS_CACHE: '${{ github.workspace }}/.scons-cache/'
-#          SCONS_CACHE_LIMIT: 8192
         run: |
-          cd gdextension
           scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}' -j2
+        working-directory: gdextension
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}
-          path: |
-            ${{ github.workspace }}/project/addons/
+          path: 'project/addons/'
