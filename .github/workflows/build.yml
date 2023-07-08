@@ -39,17 +39,23 @@ jobs:
             platform: linux
             arch: x86_64
           - identifier: macos-debug
-            name: 🍎 macOS (universal) Debug
+            name: 🍎 MacOS (universal) Debug
             runner: macos-latest
             target: template_debug
             platform: macos
             arch: universal
           - identifier: macos-release
-            name: 🍎 macOS (universal) Release
+            name: 🍎 MacOS (universal) Release
             runner: macos-latest
             target: template_release
             platform: macos
             arch: universal
+          - identifier: android-debug
+            name: 🤖 Android Debug
+            runner: ubuntu-20.04
+            target: template_debug
+            platform: android
+            arch: arm64
           - identifier: android-release
             name: 🤖 Android Release
             runner: ubuntu-20.04
@@ -110,7 +116,7 @@ jobs:
       - name: Compile extension
         shell: sh
         run: |
-          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}' -j2
+          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
         working-directory: gdextension
 
       - name: Upload artifact
