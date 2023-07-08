@@ -1,54 +1,50 @@
-name: 🛠️ Builds
+name: 🛠️ Build and upload gdextension to github releases
 on:
   push:
-    paths:
-      - 'gdextension/**'
-    branches:
-      - main
+    paths: ["gdextension/**"]
+    branches: ["main"]
   pull_request:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - identifier: windows-debug
-            os: windows-latest
             name: 🏁 Windows Debug
+            runner: ubuntu-20.04
             target: template_debug
             platform: windows
             arch: x86_64
           - identifier: windows-release
-            os: windows-latest
             name: 🏁 Windows Release
+            runner: ubuntu-20.04
             target: template_release
             platform: windows
             arch: x86_64
           - identifier: macos-debug
-            os: macos-latest
             name: 🍎 macOS (universal) Debug
+            runner: ubuntu-20.04
             target: template_debug
             platform: macos
             arch: universal
           - identifier: macos-release
-            os: macos-latest
             name: 🍎 macOS (universal) Release
+            runner: ubuntu-20.04
             target: template_release
             platform: macos
             arch: universal
           - identifier: linux-debug
-            os: ubuntu-latest
             name: 🐧 Linux Debug
             runner: ubuntu-20.04
             target: template_debug
             platform: linux
             arch: x86_64
           - identifier: linux-release
-            os: ubuntu-latest
             name: 🐧 Linux Release
             runner: ubuntu-20.04
             target: template_release
@@ -81,7 +77,11 @@ jobs:
 
       - name: Setup MinGW for Windows/MinGW build
         if: ${{ matrix.platform == 'windows' }}
-        uses: egor-tensin/setup-mingw@v2
+        shell: sh
+        run: |
+          sudo apt-get install mingw-w64
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
       
       - name: Compile godot-cpp
         shell: sh
