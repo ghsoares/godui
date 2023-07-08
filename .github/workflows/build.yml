@@ -116,4 +116,4 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}
           path: |
-            ${{ github.workspace }}/addons/
+            ${{ github.workspace }}/project/addons/

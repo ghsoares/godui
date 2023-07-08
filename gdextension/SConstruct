@@ -16,7 +16,7 @@ env = SConscript("godot-cpp/SConstruct")
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
 module_name = "godui"
-bin_folder = "../addons/{}/bin".format(module_name)
+bin_folder = "../project/addons/{}/bin".format(module_name)
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
