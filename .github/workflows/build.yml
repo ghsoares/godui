@@ -129,10 +129,11 @@ jobs:
       - name: Copy binaries to artifact folder
         shell: sh
         run: |
-          cp -r 'project/addons/' 'artifact/addons/'
+          mkdir -p 'artifact/'
+          cp -r 'project/addons/' 'artifact/'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}
-          path: 'artifact/'
+          path: './'
