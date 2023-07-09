@@ -2,12 +2,8 @@ name: 🛠️ Build GDExtension
 on:
   push:
     paths: ["gdextension/**"]
-    branches: ["main"]
   pull_request:
   workflow_dispatch:
-
-env:
-  SCONS_CACHE: ${{ github.workspace }}/.scons-cache/
 
 jobs:
   build:
@@ -72,59 +68,59 @@ jobs:
         with:
           submodules: recursive
       
-      # - name: Set up Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      # - name: Set up SCons
-      #   shell: bash
-      #   run: |
-      #     python -c "import sys; print(sys.version)"
-      #     python -m pip install scons
-      #     scons --version
+      - name: Set up SCons
+        shell: bash
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons
+          scons --version
       
-      # - name: Set up Java 11
-      #   if: ${{ matrix.platform == 'android' }}
-      #   uses: actions/setup-java@v3
-      #   with:
-      #     distribution: temurin
-      #     java-version: 11
+      - name: Set up Java 11
+        if: ${{ matrix.platform == 'android' }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
 
-      # - name: Set up Android SDK
-      #   if: ${{ matrix.platform == 'android' }}
-      #   uses: android-actions/setup-android@v2
+      - name: Set up Android SDK
+        if: ${{ matrix.platform == 'android' }}
+        uses: android-actions/setup-android@v2
       
-      # - name: Windows dependencies
-      #   if: ${{ matrix.platform == 'windows' }}
-      #   shell: sh
-      #   run: |
-      #     sudo apt-get install mingw-w64
-      #     sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-      #     sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+      - name: Windows dependencies
+        if: ${{ matrix.platform == 'windows' }}
+        shell: sh
+        run: |
+          sudo apt-get install mingw-w64
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
-      # - name: Linux dependencies
-      #   if: ${{ matrix.platform == 'linux' }}
-      #   shell: sh
-      #   run: |
-      #     sudo apt-get update -qq
-      #     sudo apt-get install -qqq build-essential pkg-config
+      - name: Linux dependencies
+        if: ${{ matrix.platform == 'linux' }}
+        shell: sh
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qqq build-essential pkg-config
       
-      # - name: Setup cache
-      #   uses: ./gdextension/godot-cpp/.github/actions/godot-cache
-      #   continue-on-error: true
+      - name: Setup cache
+        uses: ./gdextension/godot-cpp/.github/actions/godot-cache
+        continue-on-error: true
       
-      # - name: Compile godot-cpp
-      #   shell: sh
-      #   run: |
-      #     scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
-      #   working-directory: gdextension/godot-cpp
+      - name: Compile godot-cpp
+        shell: sh
+        run: |
+          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
+        working-directory: gdextension/godot-cpp
 
-      # - name: Compile extension
-      #   shell: sh
-      #   run: |
-      #     scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
-      #   working-directory: gdextension
+      - name: Compile extension
+        shell: sh
+        run: |
+          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
+        working-directory: gdextension
       
       - name: Move binaries to artifact folder
         shell: sh
