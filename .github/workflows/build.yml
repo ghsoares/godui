@@ -1,4 +1,4 @@
-name: 🛠️ Build and upload gdextension to github releases
+name: 🛠️ Build GDExtension
 on:
   push:
     paths: ["gdextension/**"]
