@@ -126,14 +126,19 @@ jobs:
       #     scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
       #   working-directory: gdextension
       
-      - name: Copy binaries to artifact folder
+      - name: Move binaries to artifact folder
         shell: sh
         run: |
-          mkdir -p 'artifact/'
-          cp -r 'project/addons/' 'artifact/'
+          mkdir -p '${{ github.workspace }}/artifact/'
+          mv '${{ github.workspace }}/project/addons/' '${{ github.workspace }}/artifact/addons/'
+      
+      - name: Copy extra files to addon folder
+        shell: sh
+        run: |
+          cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/artifact/addons/godui/'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}
-          path: './'
+          path: './artifact'
