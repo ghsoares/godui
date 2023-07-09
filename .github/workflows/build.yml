@@ -15,48 +15,56 @@ jobs:
         include:
           - identifier: windows-debug
             name: 🏁 Windows Debug
+            cache-name: windows-debug
             runner: ubuntu-20.04
             target: template_debug
             platform: windows
             arch: x86_64
           - identifier: windows-release
             name: 🏁 Windows Release
+            cache-name: windows-release
             runner: ubuntu-20.04
             target: template_release
             platform: windows
             arch: x86_64
           - identifier: linux-debug
             name: 🐧 Linux Debug
+            cache-name: linux-debug
             runner: ubuntu-20.04
             target: template_debug
             platform: linux
             arch: x86_64
           - identifier: linux-release
             name: 🐧 Linux Release
+            cache-name: linux-release
             runner: ubuntu-20.04
             target: template_release
             platform: linux
             arch: x86_64
           - identifier: macos-debug
             name: 🍎 MacOS (universal) Debug
+            cache-name: macos-debug
             runner: macos-latest
             target: template_debug
             platform: macos
             arch: universal
           - identifier: macos-release
             name: 🍎 MacOS (universal) Release
+            cache-name: macos-release
             runner: macos-latest
             target: template_release
             platform: macos
             arch: universal
           - identifier: android-debug
             name: 🤖 Android Debug
+            cache-name: android-debug
             runner: ubuntu-20.04
             target: template_debug
             platform: android
             arch: arm64
           - identifier: android-release
             name: 🤖 Android Release
+            cache-name: android-release
             runner: ubuntu-20.04
             target: template_release
             platform: android
@@ -108,6 +116,8 @@ jobs:
       
       - name: Setup cache
         uses: ./gdextension/godot-cpp/.github/actions/godot-cache
+        with:
+          cache-name: ${{ matrix.identifier }}
         continue-on-error: true
       
       - name: Compile godot-cpp
