@@ -26,6 +26,7 @@
 	--link-text-decoration--hover: underline;
 	--sidebar-name-font-weight: 600;
 	--sidebar-toggle-icon-stroke-width: 2px;
+	--cover-heading-font-weight: 400;
 }
 
 a:not([href]) {
