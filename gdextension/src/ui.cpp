@@ -6,7 +6,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/classes/random_number_generator.hpp>
 #include <godot_cpp/classes/gd_script.hpp>
-#include <godot_cpp/classes/gd_script_native_class.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
@@ -294,9 +294,9 @@ void UI::draw_update(float p_delta) {
 
 Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 	ERR_FAIL_COND_V_MSG(
-		!p_type->has_method("new"),
+		!Object::cast_to<PackedScene>(p_type) && !p_type->has_method("new"),
 		this,
-		"Type must be a native class or a script"
+		"Type must be a PackedScene, native class or a script"
 	);
 
 	uint64_t type_key = p_type->get_instance_id();
@@ -316,7 +316,14 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 
 	UIChildrenCollection::Iterator ref = type->value.children.find(index);
 	if (!ref) {
-		Node *node = Object::cast_to<Node>(p_type->call("new"));
+		PackedScene *packed_scene = Object::cast_to<PackedScene>(p_type);
+		Node *node;
+		if (packed_scene) {
+			node = packed_scene->instantiate();
+		} else {
+			node = Object::cast_to<Node>(p_type->call("new"));
+		}
+
 		ERR_FAIL_COND_V_MSG(node == nullptr, Ref<UI>(), "Type must return a Node");
 		node->set_name(vformat("%s:%d", node->get_class(), child_idx + 1));
 
