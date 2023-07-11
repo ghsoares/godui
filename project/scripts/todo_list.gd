@@ -182,10 +182,6 @@ func show_task(ui: UI, task: Dictionary) -> void:
 
 ## Called to update the interface
 func ui_process(ui: UI) -> void:
-	print("a")
-	ui.label("Test")
-	print("b")
-	return
 	# Let's contain multiple tasks inside a VBoxContainer, also make
 	# the VBoxContainer fill the entire UI with margin of 8 pixels
 	var tasks_ui: UI = ui.add(VBoxContainer).margin(8.0)
