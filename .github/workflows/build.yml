@@ -157,12 +157,6 @@ jobs:
         run: |
           cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/artifact/addons/godui/'
 
-      - name: Upload run artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ github.event.repository.name }}-run
-          path: './'
-
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
