@@ -24,11 +24,8 @@ func draw_capped_arc(node: CanvasItem, center: Vector2, radius: float, start: fl
 
 ## Called to update the interface
 func ui_process(ui: UI) -> void:
-	# Add a simple control to contain the loading animation
-	var main: UI = ui.add(Control).prop("custom_minimum_size", Vector2(128.0, 128.0))
-
 	# "draw" allows to directly draw something in the node
-	main.draw(func (draw):
+	ui.draw(func (draw):
 		# Get current frame time
 		var time: float = draw.time
 
@@ -40,6 +37,9 @@ func ui_process(ui: UI) -> void:
 
 		# Get the radius of the arc
 		var rad: float = min(size.x, size.y) * 0.5
+
+		# Get the width of the arc
+		var width: float = min(size.x, size.y) * 0.5 * 0.25
 
 		# Animate arc start and end angles
 		var a0: float = sin(time * TAU / 5.0) * deg_to_rad(90.0)
@@ -55,7 +55,7 @@ func ui_process(ui: UI) -> void:
 		var rot: float = time * TAU / 1.0
 
 		# Draw an arc with both caps
-		draw_capped_arc(node, size * 0.5, rad - 4.0, rot + a0, rot + a1, 32, Color.RED, 8.0)
+		draw_capped_arc(node, size * 0.5, rad - 4.0, rot + a0, rot + a1, 32, Color.RED, width)
 		
 		# Call "redraw" to request to draw again
 		draw.redraw()
