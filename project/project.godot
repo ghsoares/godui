@@ -14,9 +14,17 @@ config/name="Godui"
 config/features=PackedStringArray("4.1", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GoduiInit="*res://addons/godui/godui_init.gd"
+
 [debug]
 
 gdscript/warnings/enable=false
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godui/plugin.cfg")
 
 [rendering]
 
