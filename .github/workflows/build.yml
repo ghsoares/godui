@@ -3,6 +3,7 @@ on:
   push:
     paths: ["gdextension/**"]
   pull_request:
+    paths: ["gdextension/**"]
   workflow_dispatch:
 
 jobs:
