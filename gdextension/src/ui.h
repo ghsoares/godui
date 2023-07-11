@@ -31,6 +31,9 @@ class UI : public RefCounted {
 		}
 	};
 
+	static HashMap<String, Object *> builtin_scripts;
+	static bool builtin_scripts_initialized;
+
 	using UITypeCollection = HashMap<uint64_t, UINodeCollection>;
 	using UIChildrenCollection = HashMap<String, Ref<UI>>;
 
@@ -74,6 +77,9 @@ protected:
 	void idle_update(float p_delta);
 	void draw_update(float p_delta);
 
+	void initialize_builtin_classes();
+	Object *get_builtin_class(const String &p_class);
+
 	bool extract_anchor_unit(const char *p_unit, float &p_anchor_pos, float &p_anchor_off);
 
 public:
@@ -90,6 +96,14 @@ public:
 	Ref<UI> motion(const Callable &p_motion_callable);
 	Ref<UI> draw(const Callable &p_canvas_item_callable);
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
+
+	Ref<UI> label(const String &p_text, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> button(const String &p_text, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> line_edit(const String &p_input_text, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> hbox(const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> vbox(const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> horizontal_scroll(const Callable &p_ui_callable, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> vertical_scroll(const Callable &p_ui_callable, const Variant &p_key = Variant(), bool p_persist = false);
 
 	Ref<UI> queue_update();
 	Ref<UI> root_queue_update();

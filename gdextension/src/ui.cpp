@@ -15,6 +15,9 @@
 
 using namespace godot;
 
+HashMap<String, Object *> UI::builtin_scripts = HashMap<String, Object *>();
+bool UI::builtin_scripts_initialized = false;
+
 void UI::_notification(int p_what) {
 	switch (p_what) {
 		case Node::NOTIFICATION_ENTER_TREE: {
@@ -292,10 +295,44 @@ void UI::draw_update(float p_delta) {
 	}
 }
 
+void UI::initialize_builtin_classes() {
+	if (UI::builtin_scripts_initialized) return;
+	
+	Object *resources_singleton = Engine::get_singleton()->get_singleton("GoduiResources");
+	ERR_FAIL_COND_MSG(!resources_singleton, "Couldn't initialize built-in scripts, must enable Godui plugin first");
+	
+	Variant classes_var = resources_singleton->get("builtin_classes");
+	ERR_FAIL_COND_MSG(classes_var.get_type() != Variant::DICTIONARY, "GoduiResources must have a 'builtin_classes' of type Dictionary");
+
+	Dictionary classes = classes_var;
+	Array keys = classes.keys();
+	for (int64_t i = keys.size(); i > 0; i--) {
+		const String &k = keys[i - 1];
+		UI::builtin_scripts.insert(k, classes[k]);
+	}
+	
+	UI::builtin_scripts_initialized = true;
+}
+
+Object *UI::get_builtin_class(const String &p_class) {
+	
+	initialize_builtin_classes();
+	
+
+	ERR_FAIL_COND_V_MSG(
+		!UI::builtin_scripts.has(p_class),
+		nullptr,
+		vformat("Couldn't get class of type '%s'", p_class)
+	);
+
+	return UI::builtin_scripts.get(p_class);
+}
+
 Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
+	ERR_FAIL_COND_V_MSG(!p_type, nullptr, "Type is null");
 	ERR_FAIL_COND_V_MSG(
 		!Object::cast_to<PackedScene>(p_type) && !p_type->has_method("new"),
-		this,
+		nullptr,
 		"Type must be a PackedScene, native class or a script"
 	);
 
@@ -309,7 +346,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 
 	if (p_key.get_type() != Variant::NIL) {
 		index = p_key.stringify();
-		ERR_FAIL_COND_V_MSG(index.begins_with("__godui_ui:"), this, "Provided key can't begin with reserved string '__godui_ui:'");
+		ERR_FAIL_COND_V_MSG(index.begins_with("__godui_ui:"), nullptr, "Provided key can't begin with reserved string '__godui_ui:'");
 	} else {
 		index = vformat("__godui_id:%d", type->value.idx++);
 	}
@@ -324,7 +361,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 			node = Object::cast_to<Node>(p_type->call("new"));
 		}
 
-		ERR_FAIL_COND_V_MSG(node == nullptr, Ref<UI>(), "Type must return a Node");
+		ERR_FAIL_COND_V_MSG(node == nullptr, nullptr, "Type must return a Node");
 		node->set_name(vformat("%s:%d", node->get_class(), child_idx + 1));
 
 		ref = type->value.children.insert(index, UI::create_ui_parented(node, this));
@@ -333,7 +370,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 		ref->value->inside = false;
 	}
 
-	ERR_FAIL_COND_V_MSG(!ref->value->deletion, this, "Node already added");
+	ERR_FAIL_COND_V_MSG(!ref->value->deletion, nullptr, "Node already added");
 
 	ref->value->deletion = false;
 	ref->value->persist = p_persist;
@@ -428,6 +465,61 @@ Ref<UI> UI::event(const String &p_signal_name, const Callable &p_target) {
 	signal_info->value.disconnect = false;
 
 	return this;
+}
+
+Ref<UI> UI::label(const String &p_text, const Variant &p_key, bool p_persist) {
+	
+	Ref<UI> label = this->add(get_builtin_class("Label"), p_key, p_persist);
+	
+	ERR_FAIL_COND_V_MSG(!label.is_valid(), nullptr, "Failed to create a label node");
+	
+	label->prop("text", p_text);
+	
+	return label;
+}
+
+Ref<UI> UI::button(const String &p_text, const Variant &p_key, bool p_persist) {
+	Ref<UI> button = this->add(get_builtin_class("Button"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!button.is_valid(), nullptr, "Failed to create a button node");
+	button->prop("text", p_text);
+	return button;
+}
+
+Ref<UI> UI::line_edit(const String &p_text, const Variant &p_key, bool p_persist) {
+	Ref<UI> line_edit = this->add(get_builtin_class("LineEdit"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!line_edit.is_valid(), nullptr, "Failed to create a line_edit node");
+	line_edit->prop("text", p_text);
+	return line_edit;
+}
+
+Ref<UI> UI::hbox(const Variant &p_key, bool p_persist) {
+	Ref<UI> hbox = this->add(get_builtin_class("HBoxContainer"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!hbox.is_valid(), nullptr, "Failed to create a hbox node");
+	return hbox;
+}
+
+Ref<UI> UI::vbox(const Variant &p_key, bool p_persist) {
+	Ref<UI> vbox = this->add(get_builtin_class("VBoxContainer"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!vbox.is_valid(), nullptr, "Failed to create a vbox node");
+	return vbox;
+}
+
+Ref<UI> UI::horizontal_scroll(const Callable &p_ui_callable, const Variant &p_key, bool p_persist) {
+	Ref<UI> scroll = this->add(get_builtin_class("ScrollContainer"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!scroll.is_valid(), nullptr, "Failed to create a scroll node");
+	Ref<UI> hbox = scroll->add(get_builtin_class("HBoxContainer"), Variant(), p_persist);
+	ERR_FAIL_COND_V_MSG(!hbox.is_valid(), nullptr, "Failed to create a hbox node");
+	hbox->show(p_ui_callable);
+	return scroll;
+}
+
+Ref<UI> UI::vertical_scroll(const Callable &p_ui_callable, const Variant &p_key, bool p_persist) {
+	Ref<UI> scroll = this->add(get_builtin_class("ScrollContainer"), p_key, p_persist);
+	ERR_FAIL_COND_V_MSG(!scroll.is_valid(), nullptr, "Failed to create a scroll node");
+	Ref<UI> vbox = scroll->add(get_builtin_class("VBoxContainer"), Variant(), p_persist);
+	ERR_FAIL_COND_V_MSG(!vbox.is_valid(), nullptr, "Failed to create a vbox node");
+	vbox->show(p_ui_callable);
+	return scroll;
 }
 
 Ref<UI> UI::queue_update() {
@@ -723,7 +815,7 @@ Ref<UI> UI::create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui) {
 	ui->node = p_node;
 
 	if (p_parent_ui.is_null()) {
-		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), Ref<UI>(), "Target node must have a 'ui_process' function");
+		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), nullptr, "Target node must have a 'ui_process' function");
 		ui->update_callable = p_node->get("ui_process");
 
 		if (p_node->is_inside_tree())
@@ -735,11 +827,11 @@ Ref<UI> UI::create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui) {
 }
 
 Ref<UI> UI::create_ui(Node *p_node) {
-	return create_ui_parented(p_node, Ref<UI>());
+	return create_ui_parented(p_node, nullptr);
 }
 
 void UI::_bind_methods() {
-	ClassDB::bind_static_method("UI", D_METHOD("create", "Node"), &UI::create_ui, DEFVAL(Ref<UI>()));
+	ClassDB::bind_static_method("UI", D_METHOD("create", "node"), &UI::create_ui, DEFVAL(nullptr));
 	
 	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
 	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
@@ -752,6 +844,14 @@ void UI::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("draw", "draw_callable"), &UI::draw);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);
 	
+	ClassDB::bind_method(D_METHOD("label", "text", "key", "persist"), &UI::label, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("button", "text", "key", "persist"), &UI::button, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("line_edit", "text", "key", "persist"), &UI::line_edit, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("hbox", "key", "persist"), &UI::hbox, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("vbox", "key", "persist"), &UI::vbox, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("horizontal_scroll", "ui_callable", "key", "persist"), &UI::horizontal_scroll, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("vertical_scroll", "ui_callable", "key", "persist"), &UI::vertical_scroll, DEFVAL(Variant()), DEFVAL(false));
+
 	ClassDB::bind_method(D_METHOD("queue_update"), &UI::queue_update);
 	ClassDB::bind_method(D_METHOD("root_queue_update"), &UI::root_queue_update);
 	

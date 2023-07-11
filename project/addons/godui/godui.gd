@@ -3,10 +3,8 @@ extends EditorPlugin
 
 ## Called when entering tree
 func _enter_tree() -> void:
-	# Initialization of the plugin goes here.
-	pass
+	add_autoload_singleton("GoduiInit", "res://addons/godui/godui_init.gd")
 
 ## Called when exiting tree
 func _exit_tree() -> void:
-	# Clean-up of the plugin goes here.
-	pass
+	remove_autoload_singleton("GoduiInit")

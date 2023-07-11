@@ -155,7 +155,7 @@ func show_task(ui: UI, task: Dictionary) -> void:
 
 		# Now a single LineEdit for the task description, also make it fill
 		# the remaining width from the HBoxContainer
-		var task_name_ui: UI = task_panel.add(LineEdit).horizontal_expand_fill().prop("text", task.name)
+		var task_name_ui: UI = task_panel.line_edit(task.name).horizontal_expand_fill()
 
 		# Connect the `text_changed` signal to change the task's name
 		task_name_ui.event("text_changed", func (name: String):
@@ -167,7 +167,7 @@ func show_task(ui: UI, task: Dictionary) -> void:
 		)
 
 		# Lastly a button to delete the task
-		var task_delete_ui: UI = task_panel.add(Button).prop("text", "delete")
+		var task_delete_ui: UI = task_panel.button("delete")
 
 		# Connect the `pressed` signal to delete the task when pressed
 		task_delete_ui.event("pressed", func ():
@@ -182,6 +182,10 @@ func show_task(ui: UI, task: Dictionary) -> void:
 
 ## Called to update the interface
 func ui_process(ui: UI) -> void:
+	print("a")
+	ui.label("Test")
+	print("b")
+	return
 	# Let's contain multiple tasks inside a VBoxContainer, also make
 	# the VBoxContainer fill the entire UI with margin of 8 pixels
 	var tasks_ui: UI = ui.add(VBoxContainer).margin(8.0)
@@ -192,7 +196,7 @@ func ui_process(ui: UI) -> void:
 	
 	# Add a button to add new tasks and add smooth transition inside the
 	# task list
-	var new_task_ui: UI = tasks_ui.add(Button).prop("text", "new task").animate_rect()
+	var new_task_ui: UI = tasks_ui.button("New task").animate_rect()
 
 	# Connect the `pressed` signal to add a new task when pressed
 	new_task_ui.event("pressed", func ():
