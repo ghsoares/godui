@@ -8,9 +8,7 @@ Godui has a demo project with some UI examples inside `demo/` project in the rep
 
 ## Basic usage
 
-To create an dynamic UI using Godui, first you need to have the base node in the scene tree for the interface, it can be of any Node type, here I'm using a basic Control node:
-
-`Insert image here`
+To create an dynamic UI using Godui, first you need to have the base node in the scene tree for the interface, it can be of any Node type, for example a single Control node as root node of the scene.
 
 Attach a script to it and add the following content:
 
