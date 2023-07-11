@@ -7,5 +7,5 @@
   - [Compiling](contributing/compiling.md)
 - API
   - [UI](api/ui.md)
-  - [MotionRef](api/motion_ref.md)
-  - [DrawRef](api/draw_ref.md)
+  - [MotionRef](api/motionref.md)
+  - [DrawRef](api/drawref.md)

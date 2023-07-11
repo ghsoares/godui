@@ -35,46 +35,6 @@ a:not([href]) {
 	--link-text-decoration--hover: none;
 }
 
-.class-properties, .class-properties tbody, .class-methods, .class-methods tbody {
-	display: table;
-	width: 100%;
-}
-
-.class-property-row, .class-method-row {
-	font-family: var(--code-font-family);
-	white-space: pre;
-}
-
-.class-property,
-.class-method {
-	font-family: var(--code-font-family);
-	--heading-font-family: var(--code-font-family);
-	white-space: pre;
-	color: #929598;
-}
-
-.class-property-name,
-.class-method-name {
-	color: var(--heading-color);
-	--link-color: var(--heading-color);
-	--link-color--hover: var(--heading-color);
-	font-weight: 700;
-}
-
-.class-method-argument-name {
-	color: var(--heading-color);
-	font-weight: 600;
-}
-
-.class-property-getter-setter {
-	margin-top: 0.1em !important;
-	opacity: 0.8;
-}
-
-a.class-ref-anchor {
-	font-family: var(--code-font-family);
-}
-
 .token.class-name {
 	color: var(--code-theme-class-name);
 }
