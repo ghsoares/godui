@@ -22,11 +22,11 @@ Instructions about compiling the GDExtension can be found at "[compiling](contri
 
 ## Documentation
 
-Godui's online documentation uses [Docsify](https://docsify.js.org/) to easily generate html at runtime using markdown, all the relevant files can be found at `docs/` folder inside the repository.
+Godui's online documentation uses [Docsify](https://docsify.js.org/) to easily generate html at runtime using markdown, all the relevant files can be found at `web-documentation` folder inside the repository.
 
 ### Class reference
 
-For the Godui's custom classes references, I've made a script that parses the markdown to extract the class's methods and properties information, it can be found at `docs/js/apify.js`, it consists of some HTML tags to describe the class:
+For the Godui's custom classes references, I've made a script that parses the markdown to extract the class's methods and properties information, it can be found at `web-documentationjs/apify.js`, it consists of some HTML tags to describe the class:
 
 - `<span class-ref>{class}</span>`: Inserts a link to the Godot's class reference based on `{class}` name, the only exceptions are `void` and Godui's classes (must be inserted at `apify.js:CLASS_REFERENCE` object);
 
@@ -44,4 +44,4 @@ For the Godui's custom classes references, I've made a script that parses the ma
 
 - `<span class-property-ref>{property}</span>`: Links to the description of a property of this class, or another class if you provide it's name (`{class_name}:{property}`).
 
-I suggest to insert class references inside `docs/api/` folder and update `docs/_sidebar.md` to include the newly added class reference (inside `API` section).
+I suggest to insert class references inside `web-documentationapi/` folder and update `web-documentation_sidebar.md` to include the newly added class reference (inside `API` section).
