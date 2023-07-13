@@ -6,6 +6,10 @@ on:
     paths: ["gdextension/**"]
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}-runner
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ${{ matrix.runner }}
