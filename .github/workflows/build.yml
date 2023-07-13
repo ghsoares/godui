@@ -2,6 +2,7 @@ name: 🛠️ Build GDExtension
 on:
   push:
     paths: ["gdextension/**"]
+    branches: ["main"]
   pull_request:
     paths: ["gdextension/**"]
     branches: ["main"]
