@@ -4,6 +4,7 @@ on:
     paths: ["gdextension/**"]
   pull_request:
     paths: ["gdextension/**"]
+    branches: ["main"]
   workflow_dispatch:
 
 concurrency:
