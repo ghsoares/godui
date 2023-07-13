@@ -1,4 +1,4 @@
-![logo](docs/img/logo.svg)
+![logo](logo.svg)
 
 # Godui <small>0.1.0 alpha</small>
 
