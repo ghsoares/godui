@@ -162,7 +162,7 @@ jobs:
       - name: Copy extra files to addon folder
         shell: sh
         run: |
-          cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/artifact/addons/godui/'
+          cp '${{ github.workspace }}/README.md' '${{ github.workspace }}/logo.svg' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/artifact/addons/godui/'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
