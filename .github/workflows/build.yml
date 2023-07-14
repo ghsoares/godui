@@ -140,7 +140,7 @@ jobs:
           SCONS_CACHE_LIMIT: 8192
         run: |
           scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}'
-        working-directory: gdextension/godot-cpp
+        working-directory: godot-cpp
 
       - name: Compile extension
         shell: sh
