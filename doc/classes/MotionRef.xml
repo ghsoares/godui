@@ -20,6 +20,13 @@
 				Sets if the [Motion] should loop when animation ends.
 			</description>
 		</method>
+		<method name="delay">
+			<return type="MotionRef" />
+			<param index="0" name="duration" type="float"/>
+			<description>
+				Delays the start of the [MotionRef] by [param duration] seconds.
+			</description>
+		</method>
 		<method name="scope">
 			<return type="MotionRef" />
 			<param index="0" name="motion_callable" type="Callable"/>

@@ -14,10 +14,11 @@
 				Clears all the children [UI] and remove the respective nodes from the scene.
 			</description>
 		</method>
-		<method name="ref" qualifiers="const">
-			<return type="UI" />
+		<method name="debug">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" default="true" />
 			<description>
-				Returns the internal [Node] reference.
+				Enables debugging for this [UI], draws a colored rectangle in the [Control] when this UI updates.
 			</description>
 		</method>
 		<method name="add">
@@ -82,6 +83,77 @@
 				Connects the [Node]'s signal of name [param signal_name] to the callable [param target].
 			</description>
 		</method>
+		<method name="label">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [Label] to the UI, it's the same as calling: [code]ui.add(Label, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="button">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [Button] to the UI, it's the same as calling: [code]ui.add(Button, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="line_edit">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [LineEdit] to the UI, it's the same as calling: [code]ui.add(LineEdit, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="hbox">
+			<return type="UI" />
+			<param index="0" name="key" type="Variant" default="null" />
+			<param index="1" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [HBoxContainer] to the UI, it's the same as calling: [code]ui.add(HBoxContainer, key, persist)[/code]
+			</description>
+		</method>
+		<method name="vbox">
+			<return type="UI" />
+			<param index="0" name="key" type="Variant" default="null" />
+			<param index="1" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [VBoxContainer] to the UI, it's the same as calling: [code]ui.add(VBoxContainer, key, persist)[/code]
+			</description>
+		</method>
+		<method name="horizontal_scroll">
+			<return type="UI" />
+			<param index="0" name="ui_callable" type="Callable" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [ScrollContainer] with a [HBoxContainer] inside it, then calls [param ui_callable] to add children to the HBoxContainer, it's the same as calling:
+				[code]
+				ui.add(ScrollContainer, key, persist).add(HBoxContainer, null, persist).show(func (ui):
+					# Add content here
+				)
+				[/code]
+			</description>
+		</method>
+		<method name="vertical_scroll">
+			<return type="UI" />
+			<param index="0" name="ui_callable" type="Callable" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [ScrollContainer] with a [VBoxContainer] inside it, then calls [param ui_callable] to add children to the VBoxContainer, it's the same as calling:
+				[code]
+				ui.add(ScrollContainer, key, persist).add(VBoxContainer, null, persist).show(func (ui):
+					# Add content here
+				)
+				[/code]
+			</description>
+		</method>
 		<method name="queue_update">
 			<return type="UI" />
 			<description>
@@ -92,6 +164,12 @@
 			<return type="UI" />
 			<description>
 				Requests this [UI]'s root to update next frame.
+			</description>
+		</method>
+		<method name="ref" qualifiers="const">
+			<return type="UI" />
+			<description>
+				Returns the internal [Node] reference.
 			</description>
 		</method>
 		<method name="animate_rect">

@@ -38,3 +38,7 @@ a:not([href]) {
 .token.class-name {
 	color: var(--code-theme-class-name);
 }
+
+.member-description, .method-description {
+	padding-left: 4ch;
+}
