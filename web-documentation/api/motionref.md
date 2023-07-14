@@ -16,6 +16,7 @@ Motion system provides utility to easily create [UI](#api/ui.md) animations.
 | --- | --- |
 | void | [reset](#method-reset) ( ) |
 | [MotionRef](#api/motionref.md) | [loop](#method-loop) ( [bool](https://docs.godotengine.org/en/4.1/classes/class_bool.html) enabled ) |
+| [MotionRef](#api/motionref.md) | [delay](#method-delay) ( [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration ) |
 | [MotionRef](#api/motionref.md) | [scope](#method-scope) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable ) |
 | [MotionRef](#api/motionref.md) | [parallel](#method-parallel) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable ) |
 | [MotionRef](#api/motionref.md) | [chain](#method-chain) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable ) |
@@ -45,135 +46,247 @@ Motion system provides utility to easily create [UI](#api/ui.md) animations.
 
 ### <a id="method-reset">void [reset](#method-reset) ( )</a>
 
-> Resets current [Motion](https://docs.godotengine.org/en/4.1/classes/class_motion.html)'s time, use this to change between animations.
+<blockquote>
+
+Resets current [Motion](https://docs.godotengine.org/en/4.1/classes/class_motion.html)'s time, use this to change between animations.
+
+</blockquote>
 
 ### <a id="method-loop">[MotionRef](#api/motionref.md) [loop](#method-loop) ( [bool](https://docs.godotengine.org/en/4.1/classes/class_bool.html) enabled )</a>
 
-> Sets if the [Motion](https://docs.godotengine.org/en/4.1/classes/class_motion.html) should loop when animation ends.
+<blockquote>
+
+Sets if the [Motion](https://docs.godotengine.org/en/4.1/classes/class_motion.html) should loop when animation ends.
+
+</blockquote>
+
+### <a id="method-delay">[MotionRef](#api/motionref.md) [delay](#method-delay) ( [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration )</a>
+
+<blockquote>
+
+Delays the start of the [MotionRef](#api/motionref.md) by `duration` seconds.
+
+</blockquote>
 
 ### <a id="method-scope">[MotionRef](#api/motionref.md) [scope](#method-scope) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable )</a>
 
-> Helper function to create a scope to call methods from Motion as arguments from chained calls, see [godotengine/godot#78334](https://github.com/godotengine/godot/issues/78334)
-> 
-> `motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+<blockquote>
+
+Helper function to create a scope to call methods from Motion as arguments from chained calls, see [godotengine/godot#78334](https://github.com/godotengine/godot/issues/78334)
+			
+`motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+
+</blockquote>
 
 ### <a id="method-parallel">[MotionRef](#api/motionref.md) [parallel](#method-parallel) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable )</a>
 
-> Animate multiple tracks parallely, useful to animate multiple properties at the same time.
-> 
-> `motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+<blockquote>
+
+Animate multiple tracks parallely, useful to animate multiple properties at the same time.
+
+`motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+
+</blockquote>
 
 ### <a id="method-chain">[MotionRef](#api/motionref.md) [chain](#method-chain) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable )</a>
 
-> Inverse of [parallel](#method-parallel), animates tracks one after the other, useful to animate keyframes inside parallel tracks.
-> 
-> `motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+<blockquote>
+
+Inverse of [parallel](#method-parallel), animates tracks one after the other, useful to animate keyframes inside parallel tracks.
+
+`motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+
+</blockquote>
 
 ### <a id="method-scale">[MotionRef](#api/motionref.md) [scale](#method-scale) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable )</a>
 
-> Set's the duration scale of the animated keys, it's inversely proportional to the key's velocity, the lower the scale, the faster the key will be animated.
-> 
-> `motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+<blockquote>
+
+Set's the duration scale of the animated keys, it's inversely proportional to the key's velocity, the lower the scale, the faster the key will be animated.
+
+`motion_callable` must have only one argument of type [MotionRef](#api/motionref.md).
+
+</blockquote>
 
 ### <a id="method-prop">[MotionRef](#api/motionref.md) [prop](#method-prop) ( [String](https://docs.godotengine.org/en/4.1/classes/class_string.html) name, [bool](https://docs.godotengine.org/en/4.1/classes/class_bool.html) indexed = <code class="code-gdscript">false</code> )</a>
 
-> Animates a single property, call this before animating keys, set `indexed` to <code class="code-gdscript">true</code> if you want to work with indexed properties, for example <code class="code-gdscript">"color:a"</code>.
+<blockquote>
+
+Animates a single property, call this before animating keys, set `indexed` to `true` if you want to work with indexed properties, for example `"color:a"`.
+
+</blockquote>
 
 ### <a id="method-callback">[MotionRef](#api/motionref.md) [callback](#method-callback) ( [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) callback_callable )</a>
 
-> Inserts a single callback keyframe, called after previous keys were animated.
+<blockquote>
+
+Inserts a single callback keyframe, called after previous keys were animated.
+
+</blockquote>
 
 ### <a id="method-wait">[MotionRef](#api/motionref.md) [wait](#method-wait) ( [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration )</a>
 
-> Insert a empty animation keyframe that lasts `duration` seconds until next keyframe.
+<blockquote>
+
+Insert a empty animation keyframe that lasts `duration` seconds until next keyframe.
+
+</blockquote>
 
 ### <a id="method-repeat">[MotionRef](#api/motionref.md) [repeat](#method-repeat) ( [int](https://docs.godotengine.org/en/4.1/classes/class_int.html) times, [Callable](https://docs.godotengine.org/en/4.1/classes/class_callable.html) motion_callable )</a>
 
-> Repeats keyframes `times` times.
-> 
-> `motion_callable` must have two arguments, one being of type [MotionRef](#api/motionref.md) and the other being of type [int](https://docs.godotengine.org/en/4.1/classes/class_int.html) as the repetition index.
+<blockquote>
+
+Repeats keyframes `times` times.
+
+`motion_callable` must have two arguments, one being of type [MotionRef](#api/motionref.md) and the other being of type [int](https://docs.godotengine.org/en/4.1/classes/class_int.html) as the repetition index.
+
+</blockquote>
 
 ### <a id="method-current">[Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) [current](#method-current) ( )</a>
 
-> Gets current property track's value, must call [prop](#method-prop) first.
+<blockquote>
+
+Gets current property track's value, must call [prop](#method-prop) first.
+
+</blockquote>
 
 ### <a id="method-relative">[Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) [relative](#method-relative) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) delta )</a>
 
-> Gets a value relative to the current property track's value by `delta`, must call [prop](#method-prop) first.
+<blockquote>
+
+Gets a value relative to the current property track's value by `delta`, must call [prop](#method-prop) first.
+
+</blockquote>
 
 ### <a id="method-frame">[MotionRef](#api/motionref.md) [frame](#method-frame) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) value )</a>
 
-> Inserts a single keyframe without duration for the current property track.
+<blockquote>
+
+Inserts a single keyframe without duration for the current property track.
+
+</blockquote>
 
 ### <a id="method-from_current">[MotionRef](#api/motionref.md) [from_current](#method-from_current) ( )</a>
 
-> Inserts a single keyframe from the current property track's value or the node's property value. Same as calling <code class="code-gdscript">frame(current())</code>
+<blockquote>
+
+Inserts a single keyframe from the current property track's value or the node's property value. Same as calling `frame(current())`
+
+</blockquote>
 
 ### <a id="method-constant">[MotionRef](#api/motionref.md) [constant](#method-constant) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration )</a>
 
-> Animates using constant transition to target value `to_value` during `duration` seconds.
+<blockquote>
+
+Animates using constant transition to target value `to_value` during `duration` seconds.
+
+</blockquote>
 
 ### <a id="method-linear">[MotionRef](#api/motionref.md) [linear](#method-linear) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration )</a>
 
-> Animates using linear transition to target value `to_value` during `duration` seconds.
+<blockquote>
+
+Animates using linear transition to target value `to_value` during `duration` seconds.
+
+</blockquote>
 
 ### <a id="method-ease_in">[MotionRef](#api/motionref.md) [ease_in](#method-ease_in) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using ease-in transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the easing animation.
+<blockquote>
+
+Animates using ease-in transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the easing animation.
+
+</blockquote>
 
 ### <a id="method-ease_out">[MotionRef](#api/motionref.md) [ease_out](#method-ease_out) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using ease-out transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the easing animation.
+<blockquote>
+
+Animates using ease-out transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the easing animation.
+
+</blockquote>
 
 ### <a id="method-ease_in_out">[MotionRef](#api/motionref.md) [ease_in_out](#method-ease_in_out) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using ease-in-out transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the easing animation.
+<blockquote>
+
+Animates using ease-in-out transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the easing animation.
+
+</blockquote>
 
 ### <a id="method-ease_out_in">[MotionRef](#api/motionref.md) [ease_out_in](#method-ease_out_in) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using ease-out-in transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the easing animation.
+<blockquote>
+
+Animates using ease-out-in transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the easing animation.
+
+</blockquote>
 
 ### <a id="method-elastic_in">[MotionRef](#api/motionref.md) [elastic_in](#method-elastic_in) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using elastic-in transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the elastic animation.
+<blockquote>
+
+Animates using elastic-in transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the elastic animation.
+
+</blockquote>
 
 ### <a id="method-elastic_out">[MotionRef](#api/motionref.md) [elastic_out](#method-elastic_out) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using elastic-out transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the elastic animation.
+<blockquote>
+
+Animates using elastic-out transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the elastic animation.
+
+</blockquote>
 
 ### <a id="method-elastic_in_out">[MotionRef](#api/motionref.md) [elastic_in_out](#method-elastic_in_out) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using elastic-in-out transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the elastic animation.
+<blockquote>
+
+Animates using elastic-in-out transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the elastic animation.
+
+</blockquote>
 
 ### <a id="method-elastic_out_in">[MotionRef](#api/motionref.md) [elastic_out_in](#method-elastic_out_in) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Animates using elastic-out-in transition to target value `to_value` during `duration` seconds.
-> 
-> Set `strength` to the strength of the elastic animation.
+<blockquote>
+
+Animates using elastic-out-in transition to target value `to_value` during `duration` seconds.
+
+Set `strength` to the strength of the elastic animation.
+
+</blockquote>
 
 ### <a id="method-pulse">[MotionRef](#api/motionref.md) [pulse](#method-pulse) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) strength = <code class="code-gdscript">3.0</code> )</a>
 
-> Pulses to target value `to_value` then goes back to the initial value before this keyframe during `duration` seconds.
-> 
-> Set `strength` to the strength of the pulse animation.
+<blockquote>
+
+Pulses to target value `to_value` then goes back to the initial value before this keyframe during `duration` seconds.
+
+Set `strength` to the strength of the pulse animation.
+
+</blockquote>
 
 ### <a id="method-shake">[MotionRef](#api/motionref.md) [shake](#method-shake) ( [Variant](https://docs.godotengine.org/en/4.1/classes/class_variant.html) to_value, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) duration, [float](https://docs.godotengine.org/en/4.1/classes/class_float.html) frequency = <code class="code-gdscript">3.0</code> )</a>
 
-> Shakes to target value `to_value` then goes back to the initial value before this keyframe during `duration` seconds.
-> 
-> Set `frequency` to the frequency of the shake animation.
+<blockquote>
+
+Shakes to target value `to_value` then goes back to the initial value before this keyframe during `duration` seconds.
+
+Set `frequency` to the frequency of the shake animation.
+
+</blockquote>
 

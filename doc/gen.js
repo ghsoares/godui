@@ -258,7 +258,13 @@ const parseBBCode = (s = "") => {
 			};
 			case "text": return syntax.value;
 			case "bold": return "**" + parseBBCode(syntax.value) + "**";
-			case "code": return `<code class="code-gdscript">` + parseBBCode(syntax.value) + `</code>`;
+			case "code": {
+				let text = parseBBCode(syntax.value);
+				if (text.match(/\n/g))
+					return "\n```gdscript\n" + text + "\n```\n";
+				else
+					return "`" + text + "`";
+			}
 			case "constant": {
 				const classRef = syntax.value.match(/^(\w+)\./);
 				let cons = syntax.value;
@@ -304,6 +310,24 @@ const parseBBCode = (s = "") => {
 	return parseBBCode(syntax);
 }
 
+const normalizeText = (text = "") => {
+	if (text == null) return text;
+
+	// text = text.replace(/\#/g, "\\#");
+
+	let indent = text.split("\n").map(s => {
+		if (s.trim() == "") return null;
+		let m = s.match(/^\t+/);
+		if (m) return m[0].length;
+		return 0;
+	}).filter(s => s != null).sort()[0] ?? 0;
+	
+	return text.split("\n").map(s => {
+		s = s.replace(new RegExp(`^\\t{${indent}}`), "");
+		return s;
+	}).join("\n").trim();
+}
+
 const parseClassReference = (xml) => {
 	return new Promise((resolve, reject) => {
 		const $class = xml.class;
@@ -311,10 +335,10 @@ const parseClassReference = (xml) => {
 		const name = classProps.name;
 		const inherits = classProps.inherits;
 		const briefDescription = parseBBCode(
-			$class.brief_description?.at(0)?.replace(/\t/g, "").trim()
+			normalizeText($class.brief_description?.at(0))
 		);
 		const description = parseBBCode(
-			$class.description?.at(0)?.replace(/\t/g, "").trim()
+			normalizeText($class.description?.at(0))
 		);
 		const members = $class.members?.at(0)?.member.map(m => {
 			const memberType = m.$.type;
@@ -322,7 +346,7 @@ const parseClassReference = (xml) => {
 			const memberSetter = m.$.setter;
 			const memberGetter = m.$.getter;
 			const memberDescription = parseBBCode(
-				m._?.replace(/\t/g, "").trim()
+				normalizeText(m._)
 			);
 			return {
 				type: memberType,
@@ -353,7 +377,7 @@ const parseClassReference = (xml) => {
 				return p;
 			});
 			const methodDescription = parseBBCode(
-				m.description?.at(0)?.replace(/\t/g, "").trim()
+				normalizeText(m.description?.at(0))
 			);
 			return {
 				return: methodReturn,
@@ -425,18 +449,23 @@ const parseClassReference = (xml) => {
 				html += "</a>\n\n";
 
 				if (m.setter) {
-					html += `> - <span style="opacity: 0.8">void ${m.setter} ( ${classRefAnchor(m.type)} value )</span>\n`;
+					html += `- <span style="opacity: 0.8">void ${m.setter} ( ${classRefAnchor(m.type)} value )</span>\n`;
 				}
 				if (m.getter) {
-					html += `> - <span style="opacity: 0.8">${classRefAnchor(m.type)} ${m.getter} ( )</span>\n`;
+					html += `- <span style="opacity: 0.8">${classRefAnchor(m.type)} ${m.getter} ( )</span>\n`;
 				}
-				html += "> \n";
+				html += "\n";
+
+				html += `<blockquote>\n\n`;
 
 				if (m.description) {
-					html += "> " + m.description.replace(/\n/g, "\n> ");
+					html += m.description + "\n\n";
 				} else {
-					html += "> Missing description";
+					html += "Missing description\n\n";
 				}
+
+				html += `</blockquote>`;
+
 				html += "\n\n";
 			});
 		}
@@ -459,11 +488,15 @@ const parseClassReference = (xml) => {
 				}
 				html += "</a>\n\n";
 
+				html += `<blockquote>\n\n`;
+
 				if (m.description) {
-					html += "> " + m.description.replace(/\n/g, "\n> ");
+					html += m.description + "\n\n";
 				} else {
-					html += "> Missing description";
+					html += "Missing description\n\n";
 				}
+
+				html += `</blockquote>`;
 
 				html += "\n\n";
 			});
