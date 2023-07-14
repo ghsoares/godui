@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="DrawRef" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A wrapper class to easily create drawings to a [UI].
+	</brief_description>
+	<description>
+		[DrawRef] enables to quickly and easily add drawings to a node inside a [UI].
+	</description>
+	<members>
+		<member name="time" type="float" setter="" getter="get_time">
+			Current time of the drawn frame in seconds.
+		</member>
+		<member name="delta" type="float" setter="" getter="get_delta">
+			Time elapsed from the previous frame in seconds.
+		</member>
+		<member name="node" type="CanvasItem" setter="" getter="get_node">
+			The target node of the drawing as a [CanvasItem].
+		</member>
+	</members>
+	<methods>
+		<method name="redraw">
+			<return type="void" />
+			<description>
+				Requests the [UI] to redraw in the next frame.
+			</description>
+		</method>
+	</methods>
+</class>

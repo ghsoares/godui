@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Godui</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Godui, an easy to use GUI library for Godot">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+  <meta property="og:title" content="Godui"/>
+  <meta property="og:image" content="https://raw.githubusercontent.com/ghsoares/godui/main/web-documentationimg/thumbnail.png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="627"/>
+  <meta property="og:description" content="Godui, an easy to use GUI library for Godot"/>
+  <meta property="og:url" content="https://ghsoares.github.io/godui"/>
+  <meta property="og:type" content="website"/>
+
+  <!-- Themes (light + dark) -->
+  <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
+  <link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="css/style-dark.css">
+  <link rel="stylesheet" media="(prefers-color-scheme: light)" href="css/style-light.css">
+
+  <link rel="icon" type="image/svg+xml" href="./img/favicon.svg"> 
+</head>
+<body>
+  <div id="app">Loading Godui documentation...</div>
+  <script>
+    window.$docsify = {
+      auto2top: true,
+      name: '',
+      repo: '',
+      coverpage: true,
+      loadSidebar: true,
+      maxLevel: 4,
+      mergeSidebar: true,
+      subMaxLevel: 3,
+        // search: {
+        //   maxAge: 0, // Expiration time, the default one day
+        //   paths: 'auto',
+        //   placeholder: 'Type to search',
+        //   noData: 'No Results!',
+        //   // Headline depth, 1 - 6
+        //   depth: 6,
+        //   hideOtherSidebarContent: false, // whether or not to hide other sidebar content
+        // },
+      requestHeaders: {
+        'cache-control': 'max-age=0',
+      },
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md',
+      },
+      noCompileLinks: [
+        '/js/.*', '/img/.*'
+      ],
+      name: 'Godui',
+      nameLink: '#/',
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-gdscript.min.js"></script>
+  
+  <script src="https://unpkg.com/docsify-copy-code@2"></script>
+  <script src="https://unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  
+  <script src="js/classify.js"></script>
+  <script src="js/footer.js"></script>
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script> -->
+</body>
+</html>
