@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="MotionRef" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Base class to create dynamic animations.
+	</brief_description>
+	<description>
+		Motion system provides utility to easily create [UI] animations.
+	</description>
+	<methods>
+		<method name="reset">
+			<return type="void" />
+			<description>
+				Resets current [Motion]'s time, use this to change between animations.
+			</description>
+		</method>
+		<method name="loop">
+			<return type="MotionRef" />
+			<param index="0" name="enabled" type="bool"/>
+			<description>
+				Sets if the [Motion] should loop when animation ends.
+			</description>
+		</method>
+		<method name="delay">
+			<return type="MotionRef" />
+			<param index="0" name="duration" type="float"/>
+			<description>
+				Delays the start of the [MotionRef] by [param duration] seconds.
+			</description>
+		</method>
+		<method name="scope">
+			<return type="MotionRef" />
+			<param index="0" name="motion_callable" type="Callable"/>
+			<description>
+				Helper function to create a scope to call methods from Motion as arguments from chained calls, see [godotengine/godot#78334](https://github.com/godotengine/godot/issues/78334)
+			
+				[param motion_callable] must have only one argument of type [MotionRef].
+			</description>
+		</method>
+		<method name="parallel">
+			<return type="MotionRef" />
+			<param index="0" name="motion_callable" type="Callable"/>
+			<description>
+				Animate multiple tracks parallely, useful to animate multiple properties at the same time.
+
+				[param motion_callable] must have only one argument of type [MotionRef].
+			</description>
+		</method>
+		<method name="chain">
+			<return type="MotionRef" />
+			<param index="0" name="motion_callable" type="Callable"/>
+			<description>
+				Inverse of [method parallel], animates tracks one after the other, useful to animate keyframes inside parallel tracks.
+
+				[param motion_callable] must have only one argument of type [MotionRef].
+			</description>
+		</method>
+		<method name="scale">
+			<return type="MotionRef" />
+			<param index="0" name="motion_callable" type="Callable"/>
+			<description>
+				Set's the duration scale of the animated keys, it's inversely proportional to the key's velocity, the lower the scale, the faster the key will be animated.
+
+				[param motion_callable] must have only one argument of type [MotionRef].
+			</description>
+		</method>
+		<method name="prop">
+			<return type="MotionRef" />
+			<param index="0" name="name" type="String"/>
+			<param index="1" name="indexed" type="bool" default="false"/>
+			<description>
+				Animates a single property, call this before animating keys, set [param indexed] to [code]true[/code] if you want to work with indexed properties, for example [code]"color:a"[/code].
+			</description>
+		</method>
+		<method name="callback">
+			<return type="MotionRef" />
+			<param index="0" name="callback_callable" type="Callable"/>
+			<description>
+				Inserts a single callback keyframe, called after previous keys were animated.
+			</description>
+		</method>
+		<method name="wait">
+			<return type="MotionRef" />
+			<param index="0" name="duration" type="float"/>
+			<description>
+				Insert a empty animation keyframe that lasts [param duration] seconds until next keyframe.
+			</description>
+		</method>
+		<method name="repeat">
+			<return type="MotionRef" />
+			<param index="0" name="times" type="int"/>
+			<param index="1" name="motion_callable" type="Callable"/>
+			<description>
+				Repeats keyframes [param times] times.
+
+				[param motion_callable] must have two arguments, one being of type [MotionRef] and the other being of type [int] as the repetition index.
+			</description>
+		</method>
+		<method name="current">
+			<return type="Variant" />
+			<description>
+				Gets current property track's value, must call [method prop] first.
+			</description>
+		</method>
+		<method name="relative">
+			<return type="Variant" />
+			<param index="0" name="delta" type="Variant"/>
+			<description>
+				Gets a value relative to the current property track's value by [param delta], must call [method prop] first.
+			</description>
+		</method>
+		<method name="frame">
+			<return type="MotionRef" />
+			<param index="0" name="value" type="Variant"/>
+			<description>
+				Inserts a single keyframe without duration for the current property track.
+			</description>
+		</method>
+		<method name="from_current">
+			<return type="MotionRef" />
+			<description>
+				Inserts a single keyframe from the current property track's value or the node's property value. Same as calling [code]frame(current())[/code]
+			</description>
+		</method>
+		<method name="constant">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<description>
+				Animates using constant transition to target value [param to_value] during [param duration] seconds.
+			</description>
+		</method>
+		<method name="linear">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<description>
+				Animates using linear transition to target value [param to_value] during [param duration] seconds.
+			</description>
+		</method>
+		<method name="ease_in">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using ease-in transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the easing animation.
+			</description>
+		</method>
+		<method name="ease_out">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using ease-out transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the easing animation.
+			</description>
+		</method>
+		<method name="ease_in_out">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using ease-in-out transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the easing animation.
+			</description>
+		</method>
+		<method name="ease_out_in">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using ease-out-in transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the easing animation.
+			</description>
+		</method>
+		<method name="elastic_in">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using elastic-in transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the elastic animation.
+			</description>
+		</method>
+		<method name="elastic_out">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using elastic-out transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the elastic animation.
+			</description>
+		</method>
+		<method name="elastic_in_out">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using elastic-in-out transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the elastic animation.
+			</description>
+		</method>
+		<method name="elastic_out_in">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Animates using elastic-out-in transition to target value [param to_value] during [param duration] seconds.
+
+				Set [param strength] to the strength of the elastic animation.
+			</description>
+		</method>
+		<method name="pulse">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="strength" type="float" default="3.0"/>
+			<description>
+				Pulses to target value [param to_value] then goes back to the initial value before this keyframe during [param duration] seconds.
+
+				Set [param strength] to the strength of the pulse animation.
+			</description>
+		</method>
+		<method name="shake">
+			<return type="MotionRef" />
+			<param index="0" name="to_value" type="Variant"/>
+			<param index="1" name="duration" type="float"/>
+			<param index="2" name="frequency" type="float" default="3.0"/>
+			<description>
+				Shakes to target value [param to_value] then goes back to the initial value before this keyframe during [param duration] seconds.
+
+				Set [param frequency] to the frequency of the shake animation.
+			</description>
+		</method>
+	</methods>
+</class>

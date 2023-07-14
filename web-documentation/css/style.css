@@ -1,0 +1,44 @@
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url('../fonts/JetBrainsMono-Regular.woff2');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url('../fonts/JetBrainsMono-Medium.woff2');
+	font-weight: 600;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url('../fonts/JetBrainsMono-Bold.woff2');
+	font-weight: 700;
+	font-style: normal;
+}
+
+:root {
+	--base-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	--code-font-family: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, Courier, monospace;
+	--link-text-decoration: none;
+	--link-text-decoration--hover: underline;
+	--sidebar-name-font-weight: 600;
+	--sidebar-toggle-icon-stroke-width: 2px;
+	--cover-heading-font-weight: 400;
+}
+
+a:not([href]) {
+	--link-color: var(--link-disabled);
+	--link-color--hover: var(--link-disabled);
+	--link-text-decoration--hover: none;
+}
+
+.token.class-name {
+	color: var(--code-theme-class-name);
+}
+
+.member-description, .method-description {
+	padding-left: 4ch;
+}

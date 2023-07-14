@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="UI" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Base class for dynamic user interfaces.
+	</brief_description>
+	<description>
+		[UI] is a base class for dynamic user interfaces, wraps a node and provide utility functions to modify it. 
+		The majority of the functions return the same UI reference to be able to chain functions.
+	</description>
+	<methods>
+		<method name="clear_children">
+			<return type="void" />
+			<description>
+				Clears all the children [UI] and remove the respective nodes from the scene.
+			</description>
+		</method>
+		<method name="debug">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" default="true" />
+			<description>
+				Enables debugging for this [UI], draws a colored rectangle in the [Control] when this UI updates.
+			</description>
+		</method>
+		<method name="add">
+			<return type="UI" />
+			<param index="0" name="type" type="Object" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a new node of [param type] to the [UI] and returns it.
+
+				You can provide a custom [param key] to the node, which will be used to reference the respective Node, can be a number, string, etc.
+
+				[param persist] tells if the node must be keep in memory after being removed as child from parent.
+			</description>
+		</method>
+		<method name="show">
+			<return type="UI" />
+			<param index="0" name="ui_callable" type="Callable" />
+			<description>
+				Assigns a update callable [param ui_callable] to this UI, each time this particular UI changes, this callable is called. 
+				[param ui_callable] must have only a single argument of type [UI].
+			</description>
+		</method>
+		<method name="prop">
+			<return type="UI" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="value" type="Variant" />
+			<description>
+				Sets a property of the [Node] with name [param name] to [param value].
+			</description>
+		</method>
+		<method name="props">
+			<return type="UI" />
+			<param index="0" name="properties" type="Dictionary" />
+			<description>
+				Sets multiple properties from [param properties] with each key being the property's name and the value being the property's value.
+			</description>
+		</method>
+		<method name="motion">
+			<return type="UI" />
+			<param index="0" name="motion_callable" type="Callable" />
+			<description>
+				Creates a [MotionRef] reference if not exists for the UI yet and call [param motion_callable] with it to create animations.
+
+				[motion_callable] must have only one argument of type [MotionRef].
+			</description>
+		</method>
+		<method name="draw">
+			<return type="UI" />
+			<param index="0" name="draw_callable" type="Callable" />
+			<description>
+				Creates a [DrawRef] reference if not exists for the UI yet and call [param draw_callable] with it to create drawings.
+
+				[draw_callable] must have only one argument of type [DrawRef].
+			</description>
+		</method>
+		<method name="event">
+			<return type="UI" />
+			<param index="0" name="signal_name" type="String" />
+			<param index="1" name="target" type="Callable" />
+			<description>
+				Connects the [Node]'s signal of name [param signal_name] to the callable [param target].
+			</description>
+		</method>
+		<method name="label">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [Label] to the UI, it's the same as calling: [code]ui.add(Label, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="button">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [Button] to the UI, it's the same as calling: [code]ui.add(Button, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="line_edit">
+			<return type="UI" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [LineEdit] to the UI, it's the same as calling: [code]ui.add(LineEdit, key, persist).prop("text", text)[/code]
+			</description>
+		</method>
+		<method name="hbox">
+			<return type="UI" />
+			<param index="0" name="key" type="Variant" default="null" />
+			<param index="1" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [HBoxContainer] to the UI, it's the same as calling: [code]ui.add(HBoxContainer, key, persist)[/code]
+			</description>
+		</method>
+		<method name="vbox">
+			<return type="UI" />
+			<param index="0" name="key" type="Variant" default="null" />
+			<param index="1" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [VBoxContainer] to the UI, it's the same as calling: [code]ui.add(VBoxContainer, key, persist)[/code]
+			</description>
+		</method>
+		<method name="horizontal_scroll">
+			<return type="UI" />
+			<param index="0" name="ui_callable" type="Callable" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [ScrollContainer] with a [HBoxContainer] inside it, then calls [param ui_callable] to add children to the HBoxContainer, it's the same as calling:
+				[code]
+				ui.add(ScrollContainer, key, persist).add(HBoxContainer, null, persist).show(func (ui):
+					# Add content here
+				)
+				[/code]
+			</description>
+		</method>
+		<method name="vertical_scroll">
+			<return type="UI" />
+			<param index="0" name="ui_callable" type="Callable" />
+			<param index="1" name="key" type="Variant" default="null" />
+			<param index="2" name="persist" type="bool" default="false" />
+			<description>
+				Adds a [ScrollContainer] with a [VBoxContainer] inside it, then calls [param ui_callable] to add children to the VBoxContainer, it's the same as calling:
+				[code]
+				ui.add(ScrollContainer, key, persist).add(VBoxContainer, null, persist).show(func (ui):
+					# Add content here
+				)
+				[/code]
+			</description>
+		</method>
+		<method name="queue_update">
+			<return type="UI" />
+			<description>
+				Requests this [UI] to update next frame.
+			</description>
+		</method>
+		<method name="root_queue_update">
+			<return type="UI" />
+			<description>
+				Requests this [UI]'s root to update next frame.
+			</description>
+		</method>
+		<method name="ref" qualifiers="const">
+			<return type="UI" />
+			<description>
+				Returns the internal [Node] reference.
+			</description>
+		</method>
+		<method name="animate_rect">
+			<return type="UI" />
+			<param index="0" name="speed" type="float" default="10.0" />
+			<description>
+				Smoothly animate the [Control]'s rect with linear interpolation with speed [param speed].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="theme_variation">
+			<return type="UI" />
+			<param index="0" name="theme_type" type="String"/>
+			<description>
+				Assign the [Control]'s [member Control.theme_type_variation] property to [param theme_type].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="shrink_begin">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_BEGIN].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="expand">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_EXPAND].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="expand_fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_EXPAND_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="shrink_center">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_CENTER].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="shrink_end">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] and [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_END].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_shrink_begin">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_SHRINK_BEGIN].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_expand">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_EXPAND].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_expand_fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_EXPAND_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_shrink_center">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_SHRINK_CENTER].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_shrink_end">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_horizontal] to [constant Control.SIZE_SHRINK_END].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_shrink_begin">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_BEGIN].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_expand">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_EXPAND].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_expand_fill">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_EXPAND_FILL].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_shrink_center">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_CENTER].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_shrink_end">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [member Control.size_flags_vertical] to [constant Control.SIZE_SHRINK_END].
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="full_rect">
+			<return type="UI" />
+			<description>
+				Sets [Control]'s [code]anchor_*[/code] and [code]offset_*[/code] so that the Control's rect takes the entire parent's rect.
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [code]anchor_*[/code] and [code]offset_*[/code] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="horizontal_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_left], [member Control.anchor_right], [member Control.offset_left] and [member Control.offset_right] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="vertical_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_top], [member Control.anchor_bottom], [member Control.offset_top] and [member Control.offset_bottom] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="left_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_left] and [member Control.offset_left] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="top_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_top] and [member Control.offset_top] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="right_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_right] and [member Control.offset_right] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="bottom_margin">
+			<return type="UI" />
+			<param index="0" name="unit" type="Variant"/>
+			<description>
+				Sets [Control]'s [member Control.anchor_bottom] and [member Control.offset_bottom] so that the Control's rect has a margin relative to parent.
+				
+				[param unit] can be of type [int] or [float] for pixels, or [String] in pixels format: [code]"64px"[/code] or relative format: [code]"5%"[/code]
+
+				[b]Note:[/b] The [Node] must inherit from [Control].
+			</description>
+		</method>
+		<method name="create" qualifiers="static">
+			<return type="UI" />
+			<param index="0" name="node" type="Node"/>
+			<description>
+				Creates a new [UI] binding it to [param node]. 
+				
+				Bound [param node] must maintain reference to the returned [UI] and must have a function [code]ui_process(UI ui)[/code].
+			</description>
+		</method>
+	</methods>
+</class>
