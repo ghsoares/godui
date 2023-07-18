@@ -623,27 +623,27 @@ Ref<UI> UI::horizontal_shrink_end() {
 }
 
 Ref<UI> UI::vertical_shrink_begin() {
-	return axis_size_flags(false, Control::SIZE_SHRINK_BEGIN);
+	return axis_size_flags(true, Control::SIZE_SHRINK_BEGIN);
 }
 
 Ref<UI> UI::vertical_fill() {
-	return axis_size_flags(false, Control::SIZE_FILL);
+	return axis_size_flags(true, Control::SIZE_FILL);
 }
 
 Ref<UI> UI::vertical_expand() {
-	return axis_size_flags(false, Control::SIZE_EXPAND);
+	return axis_size_flags(true, Control::SIZE_EXPAND);
 }
 
 Ref<UI> UI::vertical_expand_fill() {
-	return axis_size_flags(false, Control::SIZE_EXPAND_FILL);
+	return axis_size_flags(true, Control::SIZE_EXPAND_FILL);
 }
 
 Ref<UI> UI::vertical_shrink_center() {
-	return axis_size_flags(false, Control::SIZE_SHRINK_CENTER);
+	return axis_size_flags(true, Control::SIZE_SHRINK_CENTER);
 }
 
 Ref<UI> UI::vertical_shrink_end() {
-	return axis_size_flags(false, Control::SIZE_SHRINK_END);
+	return axis_size_flags(true, Control::SIZE_SHRINK_END);
 }
 
 Ref<UI> UI::full_rect() {
