@@ -32,7 +32,6 @@ class UI : public RefCounted {
 	};
 
 	static HashMap<String, Object *> builtin_scripts;
-	static bool builtin_scripts_initialized;
 
 	using UITypeCollection = HashMap<uint64_t, UINodeCollection>;
 	using UIChildrenCollection = HashMap<String, Ref<UI>>;
@@ -145,6 +144,8 @@ public:
 	Ref<UI> top_margin(Variant unit);
 	Ref<UI> right_margin(Variant unit);
 	Ref<UI> bottom_margin(Variant unit);
+
+	static void set_builtin_classes(const Dictionary &p_dict);
 
 	static Ref<UI> create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui);
 	static Ref<UI> create_ui(Node *p_node);

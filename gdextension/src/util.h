@@ -19,13 +19,5 @@
 #define GP_TOSTR(x) GP_STR(x)
 #define DBG() UtilityFunctions::print(vformat("%s:%s:%s", __FILE__, __FUNCTION_NAME__, __LINE__));
 
-namespace godot {
-
-template<class... Args>
-Variant Callable::call(const Args&... args) const {
-	return this->callv(Array::make(args...));
-}
-
-}
 
 #endif // GODUI_UTIL_H

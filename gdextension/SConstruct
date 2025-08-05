@@ -12,11 +12,25 @@ env = SConscript("godot-cpp/SConstruct")
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
-# tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=["src/"])
-sources = Glob("src/*.cpp")
+# The module name
 module_name = "godui"
+
+# The folder of the extension binaries
 bin_folder = "../project/addons/{}/bin".format(module_name)
+
+# Root directory of the extension code
+root_folder = "src/"
+
+folders = [x[0] for x in os.walk(root_folder)]
+sources = None
+for folder in folders:
+    fg = Glob(os.path.join(folder, '*.cpp'))
+    if sources == None:
+        sources = fg
+    else:
+        sources = sources + fg
+
+env.Append(CPPPATH=folders)
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(

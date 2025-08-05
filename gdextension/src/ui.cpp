@@ -16,15 +16,14 @@
 using namespace godot;
 
 HashMap<String, Object *> UI::builtin_scripts = HashMap<String, Object *>();
-bool UI::builtin_scripts_initialized = false;
 
 void UI::_notification(int p_what) {
 	switch (p_what) {
 		case Node::NOTIFICATION_ENTER_TREE: {
-			RenderingServer::get_singleton()->connect("frame_pre_draw", Callable(this, "_before_draw"));
+			RenderingServer::get_singleton()->connect("frame_pre_draw", callable_mp(this, &UI::before_draw));
 		} break;
 		case Node::NOTIFICATION_EXIT_TREE: {
-			RenderingServer::get_singleton()->disconnect("frame_pre_draw", Callable(this, "_before_draw"));
+			RenderingServer::get_singleton()->disconnect("frame_pre_draw", callable_mp(this, &UI::before_draw));
 		} break;
 		case Node::NOTIFICATION_PROCESS: {
 			check_update();
@@ -295,30 +294,19 @@ void UI::draw_update(float p_delta) {
 	}
 }
 
-void UI::initialize_builtin_classes() {
-	if (UI::builtin_scripts_initialized) return;
-	
-	Object *resources_singleton = Engine::get_singleton()->get_singleton("GoduiResources");
-	ERR_FAIL_COND_MSG(!resources_singleton, "Couldn't initialize built-in scripts, must enable Godui plugin first");
-	
-	Variant classes_var = resources_singleton->get("builtin_classes");
-	ERR_FAIL_COND_MSG(classes_var.get_type() != Variant::DICTIONARY, "GoduiResources must have a 'builtin_classes' of type Dictionary");
-
-	Dictionary classes = classes_var;
-	Array keys = classes.keys();
-	for (int64_t i = keys.size(); i > 0; i--) {
-		const String &k = keys[i - 1];
-		UI::builtin_scripts.insert(k, classes[k]);
+void UI::set_builtin_classes(const Dictionary &p_dict) {
+	UI::builtin_scripts.clear();
+	Array keys = p_dict.keys();
+	for (int i = 0; i < keys.size(); i++) {
+		Variant k = keys[i];
+		ERR_FAIL_COND(k.get_type() != Variant::Type::STRING && k.get_type() != Variant::Type::STRING_NAME);
+		String name = k;
+		Object *script = p_dict[name];
+		UI::builtin_scripts.insert(name, script);
 	}
-	
-	UI::builtin_scripts_initialized = true;
 }
 
 Object *UI::get_builtin_class(const String &p_class) {
-	
-	initialize_builtin_classes();
-	
-
 	ERR_FAIL_COND_V_MSG(
 		!UI::builtin_scripts.has(p_class),
 		nullptr,
@@ -433,7 +421,7 @@ Ref<UI> UI::draw(const Callable &p_canvas_item_callable) {
 		node_draw.instantiate();
 		node_draw->node = ci;
 		node_draw->draw_callable = p_canvas_item_callable;
-		ci->connect("draw", Callable(node_draw.ptr(), "_redraw"));
+		ci->connect("draw", callable_mp(node_draw.ptr(), &DrawRef::redraw));
 	}
 
 	node_draw->queue_redraw();
@@ -832,8 +820,8 @@ Ref<UI> UI::create_ui(Node *p_node) {
 
 void UI::_bind_methods() {
 	ClassDB::bind_static_method("UI", D_METHOD("create", "node"), &UI::create_ui, DEFVAL(nullptr));
+	ClassDB::bind_static_method("UI", D_METHOD("set_builtin_classes", "classes_dict"), &UI::set_builtin_classes);
 	
-	ClassDB::bind_method(D_METHOD("_before_draw"), &UI::before_draw);
 	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
 	ClassDB::bind_method(D_METHOD("debug", "enabled"), &UI::debug, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(false));
