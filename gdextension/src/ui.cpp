@@ -47,7 +47,7 @@ void UI::clear_children() {
 	}
 }
 
-Ref<UI> UI::debug(bool p_enabled) {
+Ref<UI> UI::set_debug(bool p_enabled) {
 	if (p_enabled == debug_canvas_item.is_valid()) return this;
 	ERR_FAIL_COND_V_MSG(!Object::cast_to<Control>(node), this, "Node must inherit Control");
 
@@ -316,15 +316,29 @@ Object *UI::get_builtin_class(const String &p_class) {
 	return UI::builtin_scripts.get(p_class);
 }
 
-Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
-	ERR_FAIL_COND_V_MSG(!p_type, nullptr, "Type is null");
+Ref<UI> UI::add(const Variant &p_type, const Variant &p_key, bool p_persist, const Dictionary &p_props) {
+	ERR_FAIL_COND_V_MSG(p_type.get_type() == Variant::Type::NIL, nullptr, "Type is null");
+
+	bool is_object = p_type.get_type() == Variant::Type::OBJECT;
+	bool is_callable = p_type.get_type() == Variant::Type::CALLABLE;
+	Object *obj = is_object ? p_type : nullptr;
+	PackedScene *type_scene = is_object ? Object::cast_to<PackedScene>(obj) : nullptr;
+	Callable type_callable = is_callable ? (Callable)p_type : Callable();
+	bool is_scene = type_scene != nullptr;
+	bool is_script = is_object && obj->has_method("new");
+
 	ERR_FAIL_COND_V_MSG(
-		!Object::cast_to<PackedScene>(p_type) && !p_type->has_method("new"),
+		!(is_callable || is_scene || is_script),
 		nullptr,
-		"Type must be a PackedScene, native class or a script"
+		"Type must be a Callable, PackedScene, native class or a script"
 	);
 
-	uint64_t type_key = p_type->get_instance_id();
+	uint64_t type_key = 0;
+	if (is_callable) {
+		type_key = (uint64_t)type_callable.hash();
+	} else if (is_object) {
+		type_key = obj->get_instance_id();
+	}
 	UITypeCollection::Iterator type = types.find(type_key);
 	if (!type) {
 		type = types.insert(type_key, UINodeCollection());
@@ -333,8 +347,12 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 	String index;
 
 	if (p_key.get_type() != Variant::NIL) {
-		index = p_key.stringify();
-		ERR_FAIL_COND_V_MSG(index.begins_with("__godui_ui:"), nullptr, "Provided key can't begin with reserved string '__godui_ui:'");
+		if (p_key.get_type() == Variant::OBJECT) {
+			index = vformat("%d", ((Object *)p_key)->get_instance_id());
+		} else {
+			index = p_key.stringify();
+			ERR_FAIL_COND_V_MSG(index.begins_with("__godui_ui:"), nullptr, "Provided key can't begin with reserved string '__godui_ui:'");
+		}
 	} else {
 		index = vformat("__godui_id:%d", type->value.idx++);
 	}
@@ -343,10 +361,14 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 	if (!ref) {
 		PackedScene *packed_scene = Object::cast_to<PackedScene>(p_type);
 		Node *node;
-		if (packed_scene) {
-			node = packed_scene->instantiate();
+		if (is_callable) {
+			Variant ret = type_callable.call();
+			ERR_FAIL_COND_V_MSG(!(ret.get_type() == Variant::Type::OBJECT && Object::cast_to<Node>(ret)), nullptr, "Callable must return a Node");
+			node = Object::cast_to<Node>(ret);
+		} else if (is_scene) {
+			node = type_scene->instantiate();
 		} else {
-			node = Object::cast_to<Node>(p_type->call("new"));
+			node = Object::cast_to<Node>(obj->call("new"));
 		}
 
 		ERR_FAIL_COND_V_MSG(node == nullptr, nullptr, "Type must return a Node");
@@ -356,6 +378,7 @@ Ref<UI> UI::add(Object *p_type, const Variant &p_key, bool p_persist) {
 		ref->value->index = index;
 		ref->value->deletion = true;
 		ref->value->inside = false;
+		ref->value->props(p_props);
 	}
 
 	ERR_FAIL_COND_V_MSG(!ref->value->deletion, nullptr, "Node already added");
@@ -379,27 +402,36 @@ Ref<UI> UI::show(const Callable &p_ui_callable) {
 	update_callable = p_ui_callable;
 	repaint = true;
 	
-	check_update();
+	if (root != nullptr) check_update();
 
 	return this;
 }
 
 Ref<UI> UI::prop(const String &p_name, const Variant &p_val) {
 	NodePath name = NodePath(p_name);
-	if (node->get_indexed(name) != p_val) {
+	// if (node->get_indexed(name) != p_val) {
 		node->set_indexed(name, p_val);
-	}
+	// }
 
 	return this;
 }
 
 Ref<UI> UI::props(const Dictionary &p_props) {
 	Array keys = p_props.keys();
-	for (int64_t i = keys.size(); i > 0; i--) {
-		prop(keys[i - 1], p_props[keys[i - 1]]);
+	for (int64_t i = keys.size() - 1; i >= 0; i--) {
+		prop(keys[i], p_props[keys[i]]);
 	}
 
 	return this;
+}
+
+Ref<UI> UI::method(const StringName &p_method_name, const Array &p_args) {
+	node->callv(p_method_name, p_args);
+	return this;
+}
+
+Variant UI::method_ret(const StringName &p_method_name, const Array &p_args) {
+	return node->callv(p_method_name, p_args);
 }
 
 Ref<UI> UI::motion(const Callable &p_motion_callable) {
@@ -803,13 +835,9 @@ Ref<UI> UI::create_ui_parented(Node *p_node, const Ref<UI> &p_parent_ui) {
 	ui->node = p_node;
 
 	if (p_parent_ui.is_null()) {
-		ERR_FAIL_COND_V_MSG(!p_node->has_method("ui_process"), nullptr, "Target node must have a 'ui_process' function");
-		ui->update_callable = p_node->get("ui_process");
-
 		if (p_node->is_inside_tree())
 			ui->notification(Node::NOTIFICATION_ENTER_TREE);
 	}
-
 
 	return ui;
 }
@@ -819,15 +847,17 @@ Ref<UI> UI::create_ui(Node *p_node) {
 }
 
 void UI::_bind_methods() {
-	ClassDB::bind_static_method("UI", D_METHOD("create", "node"), &UI::create_ui, DEFVAL(nullptr));
+	ClassDB::bind_static_method("UI", D_METHOD("create", "node"), &UI::create_ui);
 	ClassDB::bind_static_method("UI", D_METHOD("set_builtin_classes", "classes_dict"), &UI::set_builtin_classes);
-	
+
 	ClassDB::bind_method(D_METHOD("clear_children"), &UI::clear_children);
-	ClassDB::bind_method(D_METHOD("debug", "enabled"), &UI::debug, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist"), &UI::add, DEFVAL(Variant()), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("set_debug", "enabled"), &UI::set_debug);
+	ClassDB::bind_method(D_METHOD("add", "type", "key", "persist", "props"), &UI::add, DEFVAL(Variant()), DEFVAL(false), DEFVAL(Dictionary()));
 	ClassDB::bind_method(D_METHOD("show", "ui_callable"), &UI::show);
 	ClassDB::bind_method(D_METHOD("prop", "name", "value"), &UI::prop);
 	ClassDB::bind_method(D_METHOD("props", "props"), &UI::props);
+	ClassDB::bind_method(D_METHOD("method", "method_name", "args"), &UI::method, DEFVAL(Array()));
+	ClassDB::bind_method(D_METHOD("method_ret", "method_name", "args"), &UI::method_ret, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("motion", "motion_callable"), &UI::motion);
 	ClassDB::bind_method(D_METHOD("draw", "draw_callable"), &UI::draw);
 	ClassDB::bind_method(D_METHOD("event", "signal_name", "target"), &UI::event);

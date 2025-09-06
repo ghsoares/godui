@@ -1,0 +1,9 @@
+{
+	"files.associations": {
+		"*.gdx": "gdscript",
+		"prof": "plaintext",
+		"*.ushader": "shaderlab",
+		"type_traits": "cpp",
+		"functional": "cpp"
+	}
+}

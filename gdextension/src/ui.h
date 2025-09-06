@@ -85,13 +85,15 @@ public:
 	void before_draw();
 	void clear_children();
 
-	Ref<UI> debug(bool p_enabled = true);
+	Ref<UI> set_debug(bool p_enabled);
 
-	Ref<UI> add(Object *p_type, const Variant &p_key = Variant(), bool p_persist = false);
+	Ref<UI> add(const Variant &p_type, const Variant &p_key = Variant(), bool p_persist = false, const Dictionary &p_props = Dictionary());
 	Ref<UI> show(const Callable &p_ui_callable);
 
 	Ref<UI> prop(const String &p_name, const Variant &p_val);
 	Ref<UI> props(const Dictionary &p_props);
+	Ref<UI> method(const StringName &p_method_name, const Array &p_args);
+	Variant method_ret(const StringName &p_method_name, const Array &p_args);
 	Ref<UI> motion(const Callable &p_motion_callable);
 	Ref<UI> draw(const Callable &p_canvas_item_callable);
 	Ref<UI> event(const String &p_signal_name, const Callable &p_target);
